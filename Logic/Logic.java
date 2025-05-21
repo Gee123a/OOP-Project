@@ -394,6 +394,7 @@ public class Logic {
         
         // Advance to next day
         currentDay++;
+        System.out.println("\nDay " + currentDay + " has ended.");
     }
     
     // Display game ending
