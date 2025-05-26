@@ -35,6 +35,7 @@ public class Logic {
         // Show introduction
         showIntroduction();
 
+        showTutorial();
         // Main game loop
         while (currentDay <= TOTAL_DAYS && gameState.equals("ONGOING")) {
             // Display day header
@@ -434,7 +435,7 @@ public class Logic {
     // Helper method for treating patients
     private void treatPatients() {
         System.out.println("You spend your day treating the sick in their homes.");
-        boolean useProtection = textInterface.askYesNo("Use protective gear? (y/n)");
+        boolean useProtection = textInterface.askYesNo("Use protective gear? ");
 
         // Apply effects
         player.treatPatient(useProtection);
@@ -579,5 +580,10 @@ public class Logic {
                 System.out.println("Perhaps your notes will help the next plague doctor who comes to Alderbrook.");
                 break;
         }
+    }
+
+    private void showTutorial(){
+        
+
     }
 }
