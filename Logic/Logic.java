@@ -294,14 +294,26 @@ public class Logic {
                     break;
 
                 case 4: // Gather herbs
-                    System.out.println("You venture out to gather medicinal herbs.");
-                    int herbsFound = 1 + random.nextInt(3); // 1-3 herbs
-                    player.addItem("herbs", herbsFound);
-                    player.setEnergy(player.getEnergy() - 20);
-                    System.out.println("You found " + herbsFound + " herbs for your medicines!");
-                    actionsRemaining--;
+                    int herbsFound = 0;
+                    if (random.nextDouble() < 0.3) { // 30% chance of failure
+                        System.out.println("You search for hours but find nothing useful today.");
+                        player.setEnergy(player.getEnergy() - 25);
+                        System.out.println("The fruitless search exhausted you.");
+                    } else {
+                        herbsFound = random.nextInt(2) + 1; // 1-2 herbs (was 1-3)
+                        player.addItem("herbs", herbsFound);
+                        player.setEnergy(player.getEnergy() - 30); // More energy cost (was 20)
+                        System.out.println("You found " + herbsFound + " herbs for your medicines!");
+
+                        // Chance of getting sick while gathering
+                        if (random.nextDouble() < 0.15 && player.getCleanliness() < 50) {
+                            player.setCleanliness(player.getCleanliness() - 10);
+                            System.out.println("You got dirty while searching in contaminated areas.");
+                        }
+                    }
 
                     updateQuestProgress("doctor_quest", herbsFound);
+                    actionsRemaining--;
                     break;
 
                 case 5: // Educate
@@ -441,30 +453,37 @@ public class Logic {
         player.treatPatient(useProtection);
 
         // Calculate treatment effectiveness
-        double baseEffectiveness = 0.05 + (player.getDoctorSkill() / 200.0);
+        double baseEffectiveness = 0.03 + (player.getDoctorSkill() / 200.0);
         int potentialRecoveries = (int) (village.getInfectedCount() * baseEffectiveness);
-        potentialRecoveries = Math.max(0, potentialRecoveries + random.nextInt(3) - 1);
+
+        // Add skill check - low skill means potential failure
+        if (player.getDoctorSkill() < 15 && random.nextDouble() < 0.4) {
+            System.out.println("Your inexperience shows. Some treatments may have done more harm than good.");
+            potentialRecoveries = Math.max(0, potentialRecoveries - 2);
+        }
+
+        potentialRecoveries = Math.max(0, potentialRecoveries + random.nextInt(2) - 1);
 
         if (potentialRecoveries > 0) {
             System.out.println("You helped " + potentialRecoveries + " patients on their way to recovery!");
             for (int i = 0; i < potentialRecoveries && village.getInfectedCount() > 0; i++) {
                 village.recoverVillager();
             }
-            village.improveTrust(3);
+            village.improveTrust(2); // Reduced trust gain (was 3)
+
             // Progress lord quest if treating wealthy families
-            if (random.nextDouble() < 0.3) { // 30% chance of treating noble family
+            if (random.nextDouble() < 0.2) { // Reduced chance (was 0.3)
                 System.out.println("Among your patients today was a member of a noble family.");
                 updateQuestProgress("lord_quest", 1);
             }
         } else {
             System.out.println("Your treatments didn't seem very effective today.");
-            village.lowerTrust(2);
-            if (useProtection) {
-                System.out.println("You used protective gear, but it didn't help much.");
-                player.setCleanliness(player.getCleanliness() - 5);
-            } else {
-                System.out.println("You treated patients without protection, risking your own health.");
-                player.setCleanliness(player.getCleanliness() - 15);
+            village.lowerTrust(4); // Increased trust loss (was 2)
+
+            // Chance of making things worse
+            if (player.getDoctorSkill() < 10 && random.nextDouble() < 0.3) {
+                System.out.println("Your inexperience may have worsened some patients' conditions.");
+                village.lowerTrust(3);
             }
         }
     }
@@ -582,8 +601,27 @@ public class Logic {
         }
     }
 
-    private void showTutorial(){
-        
+    private void showTutorial() {
+        System.out.println("\n=== TUTORIAL ===");
+
+        System.out.println("Welcome to the Plague Doctor's Day tutorial!");
+        boolean skipTutorial = textInterface.askYesNo("Would you like to skip the tutorial?");
+        if (skipTutorial)
+            return;
+        System.out.println(
+                "In this game, you will play as a plague doctor trying to save a village from the Black Death.");
+        System.out.println(
+                "You will manage your health, cleanliness, and energy while treating patients and interacting with villagers.");
+        System.out.println("Each day, you will have a limited number of actions to perform.");
+        System.out.println("You can treat patients, gather herbs, educate villagers, and interact with key NPCs.");
+        System.out.println("Your choices will affect the village's trust in you and your overall success.");
+        System.out.println(
+                "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
+        System.out.println("You can also accept quests from special NPCs to gain rewards and improve your skills.");
+        System.out.println("Use your resources wisely and make strategic decisions to lead the village to recovery.");
+        System.out.println("Good luck, doctor! The fate of Alderbrook village is in your hands.");
+        System.out.println("Press ENTER to continue to the game...");
+        scanner.nextLine();
 
     }
 }

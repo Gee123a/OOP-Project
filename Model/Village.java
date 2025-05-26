@@ -14,19 +14,19 @@ public class Village {
     private Random random;
 
     // Constants
-    private double BASE_INFECTION_RATE = 0.15;
-    private double BASE_RECOVERY_RATE = 0.10;
-    private double BASE_MORTALITY_RATE = 0.05;
+    private double BASE_INFECTION_RATE = 0.25;
+    private double BASE_RECOVERY_RATE = 0.08;
+    private double BASE_MORTALITY_RATE = 0.08;
 
     public Village() {
         this.population = 200;
-        this.infectedCount = 15;
+        this.infectedCount = 25;
         this.recoveredCount = 0;
         this.deathCount = 0;
-        this.trustLevel = 50;
-        this.cleanliness = 40;
+        this.trustLevel = 30;
+        this.cleanliness = 25;
         this.quarantineActive = false;
-        this.educationLevel = 10;
+        this.educationLevel = 5;
         this.random = new Random();
     }
 
