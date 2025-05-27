@@ -2,9 +2,6 @@ package Model;
 
 import java.util.Scanner;
 
-/**
- * Console-based text interaction utility for the Plague Doctor game
- */
 public class ConsoleTextInterface {
     private Scanner scanner;
     

@@ -11,18 +11,18 @@ public class Player extends Character {
 
     public Player() {
         super("Plague Doctor", 100, false); // Name, health, isSick
-        this.cleanliness = 100;
+        this.cleanliness = 80;
         this.energy = 100;
-        this.doctorSkill = 10;
+        this.doctorSkill = 5;
         this.inventory = initializeInventory();
     }
 
     private Map<String, Integer> initializeInventory() {
         Map<String, Integer> items = new HashMap<>();
-        items.put("herbs", 5);
-        items.put("protective_gear", 3);
-        items.put("soap", 2);
-        items.put("coins", 10);
+        items.put("herbs", 2);
+        items.put("protective_gear", 1);
+        items.put("soap", 1);
+        items.put("coins", 5);
         return items;
     }
 
