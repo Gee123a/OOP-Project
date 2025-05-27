@@ -448,7 +448,7 @@ public class Logic {
 
         // Add skill check - low skill means potential failure
         if (player.getDoctorSkill() < 15 && random.nextDouble() < 0.4) {
-            System.out.println("Your inexperience shows. Some treatments may have done more harm than good.");
+            textInterface.display("Your inexperience shows. Some treatments may have done more harm than good.");
             potentialRecoveries = Math.max(0, potentialRecoveries - 2);
         }
 
@@ -580,8 +580,7 @@ public class Logic {
             case "CRISIS_PATH":
                 textInterface.display("The plague overwhelmed the village despite your efforts.");
                 textInterface.display("With " + village.getDeathCount() + " dead and the social order collapsed,");
-                System.out
-                        .println("few remain to carry on. Your methods were sound, but fear and superstition won out.");
+                textInterface.display("few remain to carry on. Your methods were sound, but fear and superstition won out.");
                 break;
 
             case "BAD_ENDING":
@@ -593,25 +592,25 @@ public class Logic {
     }
 
     private void showTutorial() {
-        System.out.println("\n=== TUTORIAL ===");
+        textInterface.display("\n=== TUTORIAL ===");
 
-        System.out.println("Welcome to the Plague Doctor's Day tutorial!");
+        textInterface.display("Welcome to the Plague Doctor's Day tutorial!");
         boolean skipTutorial = textInterface.askYesNo("Would you like to skip the tutorial?");
         if (skipTutorial)
             return;
-        System.out.println(
+        textInterface.display(
                 "In this game, you will play as a plague doctor trying to save a village from the Black Death.");
-        System.out.println(
+        textInterface.display(
                 "You will manage your health, cleanliness, and energy while treating patients and interacting with villagers.");
-        System.out.println("Each day, you will have a limited number of actions to perform.");
-        System.out.println("You can treat patients, gather herbs, educate villagers, and interact with key NPCs.");
-        System.out.println("Your choices will affect the village's trust in you and your overall success.");
-        System.out.println(
+        textInterface.display("Each day, you will have a limited number of actions to perform.");
+        textInterface.display("You can treat patients, gather herbs, educate villagers, and interact with key NPCs.");
+        textInterface.display("Your choices will affect the village's trust in you and your overall success.");
+        textInterface.display(
                 "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
-        System.out.println("You can also accept quests from special NPCs to gain rewards and improve your skills.");
-        System.out.println("Use your resources wisely and make strategic decisions to lead the village to recovery.");
-        System.out.println("Good luck, doctor! The fate of Alderbrook village is in your hands.");
-        System.out.println("Press ENTER to continue to the game...");
+        textInterface.display("You can also accept quests from special NPCs to gain rewards and improve your skills.");
+        textInterface.display("Use your resources wisely and make strategic decisions to lead the village to recovery.");
+        textInterface.display("Good luck, doctor! The fate of Alderbrook village is in your hands.");
+        textInterface.display("Press ENTER to continue to the game...");
         scanner.nextLine();
 
     }
