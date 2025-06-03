@@ -33,10 +33,17 @@ public class ConsoleTextInterface {
         }
         return choice;
     }
-    
+
     public boolean askYesNo(String question) {
+    while (true) {
         System.out.print(question + " (y/n): ");
         String answer = scanner.nextLine().trim().toLowerCase();
-        return answer.startsWith("y");
+        if (answer.equals("y") || answer.equals("n")) {
+            return answer.equals("y");
+        } else {
+            System.out.println("Input is not valid. Please enter 'y' for yes or 'n' for no.");
+        }
     }
+}
+
 }

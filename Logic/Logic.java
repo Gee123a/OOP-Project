@@ -135,6 +135,7 @@ public class Logic {
         for (Map.Entry<String, Integer> item : player.getInventory().entrySet()) {
             textInterface.display("- " + item.getKey() + ": " + item.getValue());
         }
+        // In displayStatus(), update the quest display section:
         if (!activeQuests.isEmpty()) {
             textInterface.display("\n=== ACTIVE QUESTS ===");
             for (String quest : activeQuests) {
@@ -143,6 +144,21 @@ public class Logic {
                     textInterface.display("- Gather herbs for Doctor Elias: " + progress + "/10 herbs");
                 } else if (quest.equals("lord_quest")) {
                     textInterface.display("- Examine noble families for Lord Harwick: " + progress + "/3 families");
+                } else if (quest.equals("traveler_quest")) {
+                    if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
+                        SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                        String role = traveler.getRole();
+                        if (role.equals("Royal Physician")) {
+                            textInterface
+                                    .display("- Gather healing water for Marcus Aurelius: " + progress + "/3 samples");
+                        } else if (role.equals("Traveling Scholar")) {
+                            textInterface.display(
+                                    "- Educational research for Brother Benedict: " + progress + "/3 sessions");
+                        } else if (role.equals("Merchant Prince")) {
+                            textInterface.display(
+                                    "- Treat merchant families for Lady Vivienne: " + progress + "/5 families");
+                        }
+                    }
                 }
             }
         }
@@ -203,58 +219,185 @@ public class Logic {
             }
         }
 
-        // Day 7 - 1st random encounter event
+        // Day 7 - 1st random encounter event (UPDATED)
         else if (currentDay == 7) {
             if (random.nextDouble() < 0.7) { // 70% chance of this event
                 textInterface.display("\n=== SPECIAL EVENT ===");
                 textInterface.display("A sick traveler collapses at the village gates.");
+                textInterface.display("Despite their illness, there's something mysterious about them...");
 
                 textInterface.display("\nWhat will you do?");
-                textInterface.display("1: Help the traveler, despite the risk");
+                textInterface.display("1: Help the traveler personally, despite the risk");
                 textInterface.display("2: Order the traveler to be kept outside the village");
                 textInterface.display("3: Examine from a distance with protective gear");
 
                 int choice = textInterface.getChoice("Choose an action", 1, 3);
-
+                NPC traveler;
                 switch (choice) {
-                    case 1:
+                    case 1: // Help personally
                         textInterface.display("You help the traveler personally, risking infection.");
                         player.setCleanliness(player.getCleanliness() - 30);
-                        keyVillagers.put("traveler",
-                                new NPC("Sick Traveler", "Unknown",
-                                        "A mysterious traveler who collapsed at the gates.", true));
+
+                        // Assign, don't declare
+                        traveler = new NPC("Mysterious Traveler", "Unknown Wanderer",
+                                "A sick traveler who collapsed at the gates. Their eyes hold ancient wisdom.", true);
+                        keyVillagers.put("traveler", traveler);
                         village.improveTrust(15);
                         break;
-                    case 2:
+
+                    case 2: // Reject
                         textInterface.display(
                                 "You order the gates closed. The village is safer, but the traveler's fate is sealed.");
                         village.lowerTrust(10);
                         break;
-                    case 3:
+
+                    case 3: // Examine with protection
                         textInterface.display("You examine the traveler carefully, using your protective gear.");
                         if (player.useItem("protective_gear", 1)) {
                             player.setCleanliness(player.getCleanliness() - 10);
                             village.improveTrust(5);
+
+                            // Assign, don't declare
+                            traveler = new NPC("Mysterious Traveler", "Unknown Wanderer",
+                                    "A sick traveler who collapsed at the gates. Their eyes hold ancient wisdom.",
+                                    true);
+                            keyVillagers.put("traveler", traveler);
                         } else {
                             textInterface
                                     .display("You don't have protective gear! You're forced to keep your distance.");
                             village.lowerTrust(5);
                         }
-                        keyVillagers.put("traveler",
-                                new NPC("Sick Traveler", "Unknown",
-                                        "A mysterious traveler who collapsed at the gates.", true));
                         break;
                 }
             }
+
+            // Day 14 - Traveler recovery and transformation event
+            else if (currentDay == 14) {
+                if (keyVillagers.containsKey("traveler")) {
+                    NPC traveler = keyVillagers.get("traveler");
+
+                    textInterface.display("\n=== TRAVELER RECOVERY EVENT ===");
+
+                    if (!traveler.isSick()) {
+                        // Traveler has recovered - TRANSFORM them into SpecialNPC
+                        textInterface.display("The mysterious traveler approaches you, now fully recovered.");
+                        textInterface.display("\"Doctor, I owe you my life. Let me tell you who I really am...\"");
+
+                        // Create new SpecialNPC with revealed identity
+                        SpecialNPC specialTraveler = transformTravelerToSpecial(traveler);
+
+                        // Replace the regular NPC with SpecialNPC
+                        keyVillagers.put("traveler", specialTraveler);
+
+                        textInterface.display(
+                                "You can now speak with " + specialTraveler.getName() + " for special assistance!");
+
+                    } else {
+                        // Still sick - offer intensive treatment
+                        textInterface.display("The traveler remains gravely ill after a week.");
+                        boolean intensiveTreatment = textInterface.askYesNo("Spend extra effort treating them today?");
+
+                        if (intensiveTreatment) {
+                            if (player.hasItem("herbs")) {
+                                player.useItem("herbs", 2);
+                                player.setEnergy(player.getEnergy() - 20);
+
+                                if (random.nextDouble() < 0.8) { // 80% success with herbs
+                                    traveler.recover();
+                                    textInterface
+                                            .display("Your intensive treatment works! The traveler begins to recover!");
+                                    village.improveTrust(10);
+                                } else {
+                                    textInterface.display("Despite your best efforts, they remain critical.");
+                                }
+                            } else {
+                                player.setEnergy(player.getEnergy() - 25);
+                                if (random.nextDouble() < 0.4) { // 40% success without herbs
+                                    traveler.recover();
+                                    textInterface.display("Through determination alone, you help them recover!");
+                                } else {
+                                    textInterface.display("Without proper medicine, your options are limited.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Special event on May 20 (today's date)
+            else if (currentDay == 20) {
+                textInterface.display("\n=== SPECIAL EVENT ===");
+                textInterface
+                        .display("You notice today's date is May 20th, a date that feels particularly significant.");
+                textInterface
+                        .display("A strange sense of clarity comes over you, as if unseen forces guide your hand.");
+                player.increaseDoctorSkill(5); // Bonus skill points
+            }
+        }
+    }
+
+    // METHOD TO TRANSFORM TRAVELER TO SPECIAL NPC (POLYMORPHISM CASTING)
+    private SpecialNPC transformTravelerToSpecial(NPC originalTraveler) {
+        // Randomly determine their revealed identity
+        String[] identities = { "Royal Physician", "Traveling Scholar", "Merchant Prince" };
+        String identity = identities[random.nextInt(identities.length)];
+
+        SpecialNPC specialTraveler;
+
+        switch (identity) {
+            case "Royal Physician":
+                specialTraveler = new SpecialNPC("Marcus Aurelius", "Royal Physician",
+                        "A learned doctor from the King's court, traveling in disguise.", false,
+                        "Can teach advanced royal medical techniques");
+
+                textInterface.display("\"I am Marcus Aurelius, physician to the King's court.\"");
+                textInterface.display("\"I was studying plague patterns in rural areas when I fell ill.\"");
+
+                // Immediate reward for helping
+                player.increaseDoctorSkill(3);
+                village.improveTrust(15);
+                break;
+
+            case "Traveling Scholar":
+                specialTraveler = new SpecialNPC("Brother Benedict", "Traveling Scholar",
+                        "A scholar studying disease patterns across different regions.", false,
+                        "Can provide valuable research and education");
+
+                textInterface.display("\"I am Brother Benedict from the university.\"");
+                textInterface.display("\"I've been documenting plague responses across the realm.\"");
+
+                // Immediate reward
+                village.improveEducation(10);
+                village.improveTrust(10);
+                break;
+
+            case "Merchant Prince":
+                specialTraveler = new SpecialNPC("Lady Vivienne", "Merchant Prince",
+                        "A wealthy trader with connections across the continent.", false,
+                        "Can provide rare supplies and trade connections");
+
+                textInterface.display("\"I am Lady Vivienne, head of the Northern Trading Guild.\"");
+                textInterface.display("\"Your care has earned you a powerful ally in commerce.\"");
+
+                // Immediate reward
+                player.addItem("rare_supplies", 3);
+                player.addItem("coins", 30);
+                village.improveTrust(8);
+                break;
+
+            default:
+                specialTraveler = new SpecialNPC("The Traveler", "Mysterious Wanderer",
+                        "A recovered traveler with hidden knowledge.", false,
+                        "Possesses mysterious abilities");
+                break;
         }
 
-        // Special event on May 20 (today's date)
-        else if (currentDay == 20) {
-            textInterface.display("\n=== SPECIAL EVENT ===");
-            textInterface.display("You notice today's date is May 20th, a date that feels particularly significant.");
-            textInterface.display("A strange sense of clarity comes over you, as if unseen forces guide your hand.");
-            player.increaseDoctorSkill(5); // Bonus skill points
+        // Copy relationship level from original NPC
+        while (specialTraveler.getRelationshipLevel() < originalTraveler.getRelationshipLevel()) {
+            specialTraveler.improveRelationship(1);
         }
+
+        return specialTraveler;
     }
 
     // Process player actions for the day
@@ -290,22 +433,60 @@ public class Logic {
                     break;
 
                 case 2: // Rest
-                    restAndRecover();
+                    textInterface.display("You spend time resting and recovering your strength.");
+                    player.rest();
                     actionsRemaining--;
                     break;
 
                 case 3: // Clean
-                    cleanYourself();
+                    textInterface.display("You clean yourself thoroughly.");
+                    player.clean();
+                    textInterface.display("Your cleanliness is now: " + player.getCleanliness());
                     actionsRemaining--;
                     break;
 
                 case 4: // Gather herbs
-                    gatherHerbs();
+                    textInterface.display("You venture out to gather medicinal herbs.");
+                    int herbsFound = 1 + random.nextInt(3); // 1-3 herbs
+                    player.addItem("herbs", herbsFound);
+                    player.setEnergy(player.getEnergy() - 20);
+                    textInterface.display("You found " + herbsFound + " herbs for your medicines!");
+                    
+
+                    updateQuestProgress("doctor_quest", herbsFound);
                     actionsRemaining--;
                     break;
 
-                case 5: // Educate villagers
-                    educateVillagers();
+                case 5: // Educate
+                    textInterface.display("\nYou decide to educate the villagers about disease prevention.");
+                    textInterface.display("What topic would you like to focus on today?");
+                    textInterface.display("1: Personal hygiene and cleanliness");
+                    textInterface.display("2: Disease transmission and prevention");
+                    textInterface.display("3: Herbal medicine and treatments");
+                    textInterface.display("4: Quarantine and isolation practices");
+                    textInterface.display("5: Nutrition and strengthening the body");
+
+                    int educationChoice = textInterface.getChoice("Choose an educational topic", 1, 5);
+
+                    switch (educationChoice) {
+                        case 1: // Personal hygiene
+                            educateAboutHygiene();
+                            break;
+                        case 2: // Disease transmission
+                            educateAboutTransmission();
+                            break;
+                        case 3: // Herbal medicine
+                            educateAboutHerbalMedicine();
+                            break;
+                        case 4: // Quarantine practices
+                            educateAboutQuarantine();
+                            break;
+                        case 5: // Nutrition
+                            educateAboutNutrition();
+                            break;
+                    }
+
+                    player.setEnergy(player.getEnergy() - 15); // Slightly more energy cost for detailed teaching
                     actionsRemaining--;
                     break;
 
@@ -318,7 +499,6 @@ public class Logic {
                     textInterface.display("You decide to end your day early.");
                     actionsRemaining = 0;
                     break;
-
                 case 8: // Use advanced medicine (only available if player has it)
                     if (player.hasItem("advanced_medicine")) {
                         player.useAdvancedMedicine();
@@ -336,11 +516,143 @@ public class Logic {
         }
     }
 
-    // ACTION CHOICE 1 - Treat Patients
+    // Helper method for speaking with villagers
+    private void speakWithVillager() {
+        textInterface.display("\nWho would you like to speak with?");
+        textInterface.display("1: Village Elder (Thomas)");
+        textInterface.display("2: Lord Harwick");
+        textInterface.display("3: Doctor Elias");
+        textInterface.display("4: Merchant Anna");
+
+        int maxChoice = 4;
+
+        // Check if traveler exists and is recovered
+        if (keyVillagers.containsKey("traveler") && !keyVillagers.get("traveler").isSick()) {
+            NPC traveler = keyVillagers.get("traveler");
+
+            // Use casting to determine what to display
+            if (traveler instanceof SpecialNPC) {
+                SpecialNPC specialTraveler = (SpecialNPC) traveler;
+                textInterface.display("5: " + specialTraveler.getName() + " (" + specialTraveler.getRole() + ")");
+            } else {
+                textInterface.display("5: " + traveler.getName() + " (Recovered Traveler)");
+            }
+            maxChoice = 5;
+        }
+
+        int choice = textInterface.getChoice("Choose a villager to speak with", 1, maxChoice);
+        String npcKey;
+
+        switch (choice) {
+            case 1:
+                npcKey = "elder";
+                break;
+            case 2:
+                npcKey = "lord";
+                break;
+            case 3:
+                npcKey = "doctor";
+                break;
+            case 4:
+                npcKey = "merchant";
+                break;
+            case 5:
+                // Safety check
+                if (keyVillagers.containsKey("traveler") && !keyVillagers.get("traveler").isSick()) {
+                    npcKey = "traveler";
+                } else {
+                    textInterface.display("That option is not available.");
+                    return;
+                }
+                break;
+            default:
+                return;
+        }
+
+        interactWithVillager(npcKey);
+    }
+
+    // Helper method for interacting with a specific villager
+    private void interactWithVillager(String npcKey) {
+        if (!keyVillagers.containsKey(npcKey)) {
+            textInterface.display("That person isn't available.");
+            return;
+        }
+
+        NPC npc = keyVillagers.get(npcKey);
+        textInterface.display(npc.getInteractionDialogue());
+
+        // If this is a special NPC, offer special interactions
+        if (npc instanceof SpecialNPC) {
+            SpecialNPC specialNPC = (SpecialNPC) npc;
+
+            textInterface.display("\nHow would you like to interact?");
+            textInterface.display("1: General conversation");
+            textInterface.display("2: Ask for assistance");
+            if (specialNPC.hasQuestAvailable()) {
+                textInterface.display("3: Ask if they need help");
+            }
+            int max = specialNPC.hasQuestAvailable() ? 3 : 2;
+            int choice = textInterface.getChoice("Choose an interaction", 1, max);
+
+            switch (choice) {
+                case 1:
+                    textInterface.display(specialNPC.getRandomDialogue());
+                    break;
+                case 2:
+                    textInterface.display(specialNPC.useSpecialAbility(player, village));
+                    break;
+                case 3:
+                    String questDescription = specialNPC.offerQuest();
+                    textInterface.display(questDescription);
+                    boolean accept = textInterface.askYesNo("Will you accept this quest?");
+                    if (accept) {
+                        String questKey = npcKey + "_quest";
+                        if (!activeQuests.contains(questKey)) {
+                            activeQuests.add(questKey);
+                            questProgress.put(questKey, 0);
+                            textInterface.display("You've accepted the quest!");
+                            textInterface.display("Check your status to track progress.");
+                        } else {
+                            textInterface.display("You already have this quest.");
+                        }
+                    } else {
+                        textInterface.display("You decline the request.");
+                    }
+                    break;
+            }
+        } else {
+            // Regular NPC conversation
+            if (npc.getRelationshipLevel() > 60) {
+                textInterface.display(npc.getName() + " shares village gossip with you.");
+                npc.improveRelationship(2);
+            } else {
+                textInterface.display("You have a brief, formal conversation.");
+                npc.improveRelationship(1);
+            }
+        }
+    }
+
+    // Helper method for treating patients
     private void treatPatients() {
         textInterface.display("You spend your day treating the sick in their homes.");
-        boolean useProtection = textInterface.askYesNo("Use protective gear? (y/n)");
-
+        
+        // Check if player has protective gear before asking
+        boolean hasProtection = player.hasItem("protective_gear");
+        boolean useProtection = false;
+        
+        if (hasProtection) {
+            useProtection = textInterface.askYesNo("Use protective gear?");
+            if (useProtection) {
+                textInterface.display("You put on protective gear before treating patients.");
+            } else {
+                textInterface.display("You decide not to use protective gear.");
+            }
+        } else {
+            textInterface.display("You don't have protective gear, so you treat patients without protection.");
+            useProtection = false;
+        }
+        
         // Apply effects
         player.treatPatient(useProtection);
 
@@ -361,17 +673,28 @@ public class Logic {
             for (int i = 0; i < potentialRecoveries && village.getInfectedCount() > 0; i++) {
                 village.recoverVillager();
             }
-            village.improveTrust(2); // Reduced trust gain (was 3)
+            village.improveTrust(2);
 
             // Progress lord quest if treating wealthy families
             if (random.nextDouble() < 0.3) { // 30% chance of treating noble family
                 textInterface.display("Among your patients today was a member of a noble family.");
                 updateQuestProgress("lord_quest", 1);
             }
+            
+            // Progress merchant prince quest if treating merchant families
+            if (activeQuests.contains("traveler_quest") && 
+                keyVillagers.containsKey("traveler") && 
+                keyVillagers.get("traveler") instanceof SpecialNPC) {
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                if (traveler.getRole().equals("Merchant Prince") && random.nextDouble() < 0.2) { // 20% chance
+                    textInterface.display("You treated a merchant family, furthering Lady Vivienne's trust-building goal.");
+                    updateQuestProgress("traveler_quest", 1);
+                }
+            }
         } else {
             textInterface.display("Your treatments didn't seem very effective today.");
             village.lowerTrust(2);
-            if (useProtection) {
+            if (hasProtection && useProtection) {
                 textInterface.display("You used protective gear, but it didn't help much.");
                 player.setCleanliness(player.getCleanliness() - 5);
             } else {
@@ -381,61 +704,131 @@ public class Logic {
         }
     }
 
-    // ACTION CHOICE 2 - Rest and Recover
-    private void restAndRecover() {
-        textInterface.display("You spend time resting and recovering your strength.");
-        player.rest();
+    // Update your updateQuestProgress method:
+    private void updateQuestProgress(String questKey, int progress) {
+        if (activeQuests.contains(questKey)) {
+            int currentProgress = questProgress.getOrDefault(questKey, 0);
+            questProgress.put(questKey, currentProgress + progress);
+
+            // Check if quest is complete
+            if (questKey.equals("doctor_quest") && questProgress.get(questKey) >= 10) {
+                completeQuest(questKey, "doctor");
+            } else if (questKey.equals("lord_quest") && questProgress.get(questKey) >= 3) {
+                completeQuest(questKey, "lord");
+            } else if (questKey.equals("traveler_quest")) {
+                // Different completion based on traveler identity
+                if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
+                    SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                    String role = traveler.getRole();
+
+                    if ((role.equals("Royal Physician") && questProgress.get(questKey) >= 3) ||
+                            (role.equals("Traveling Scholar") && questProgress.get(questKey) >= 3) ||
+                            (role.equals("Merchant Prince") && questProgress.get(questKey) >= 5)) {
+                        completeQuest(questKey, "traveler");
+                    }
+                }
+            }
+        }
     }
 
-    // ACTION CHOICE 3 - Clean Yourself
-    private void cleanYourself() {
-        textInterface.display("You clean yourself thoroughly.");
-        player.clean();
-        textInterface.display("Your cleanliness is now: " + player.getCleanliness());
+    private void completeQuest(String questKey, String npcKey) {
+        activeQuests.remove(questKey);
+        questProgress.remove(questKey);
+
+        if (keyVillagers.containsKey(npcKey) && keyVillagers.get(npcKey) instanceof SpecialNPC) {
+            SpecialNPC npc = (SpecialNPC) keyVillagers.get(npcKey);
+            npc.completeQuest();
+
+            textInterface.display("\n=== QUEST COMPLETED ===");
+            textInterface.display("You completed " + npc.getName() + "'s quest!");
+
+            // Add rewards
+            if (npcKey.equals("doctor")) {
+                player.increaseDoctorSkill(3);
+                player.addItem("advanced_medicine", 2);
+                textInterface.display("Doctor Elias teaches you advanced techniques and gives you special medicine!");
+                textInterface.display("Your doctor skill increased by 3!");
+            } else if (npcKey.equals("lord")) {
+                village.improveTrust(15);
+                player.addItem("coins", 20);
+                player.addItem("noble_seal", 1);
+                textInterface.display("Lord Harwick speaks highly of you and rewards you with coins and his seal!");
+                textInterface.display("Village trust increased significantly!");
+            }
+        }
     }
 
-    // ACTION CHOICE 4 - Gather Herbs
-    private void gatherHerbs() {
-        textInterface.display("You venture out to gather medicinal herbs.");
-        int herbsFound = 1 + random.nextInt(3); // 1-3 herbs
-        player.addItem("herbs", herbsFound);
-        player.setEnergy(player.getEnergy() - 20);
-        textInterface.display("You found " + herbsFound + " herbs for your medicines!");
+    // End the current day
+    private void endDay() {
+        // Update village status
+        village.updateDailyStatus();
 
-        updateQuestProgress("doctor_quest", herbsFound);
-    }
+        // Update player status
+        player.updateDailyStatus();
 
-    // ACTION CHOICE 5 - Educate Villagers
-    private void educateVillagers() {
-        textInterface.display("\nYou decide to educate the villagers about disease prevention.");
-        textInterface.display("What topic would you like to focus on today?");
-        textInterface.display("1: Personal hygiene and cleanliness");
-        textInterface.display("2: Disease transmission and prevention");
-        textInterface.display("3: Herbal medicine and treatments");
-        textInterface.display("4: Quarantine and isolation practices");
-        textInterface.display("5: Nutrition and strengthening the body");
-
-        int educationChoice = textInterface.getChoice("Choose an educational topic", 1, 5);
-
-        switch (educationChoice) {
-            case 1: // Personal hygiene
-                educateAboutHygiene();
-                break;
-            case 2: // Disease transmission
-                educateAboutTransmission();
-                break;
-            case 3: // Herbal medicine
-                educateAboutHerbalMedicine();
-                break;
-            case 4: // Quarantine practices
-                educateAboutQuarantine();
-                break;
-            case 5: // Nutrition
-                educateAboutNutrition();
-                break;
+        // Check for critical health
+        if (player.getHealth() < 20) {
+            gameState = "BAD_ENDING";
         }
 
-        player.setEnergy(player.getEnergy() - 15); // Slightly more energy cost for detailed teaching
+        // Check for branching on day 20
+        if (currentDay == 20) {
+            int villageHealth = 100 - (village.getInfectedCount() * 100 / village.getPopulation());
+            int trustLevel = village.getTrustLevel();
+            int playerHealth = player.getHealth();
+
+            if (villageHealth > 60 && trustLevel > 65 && playerHealth > 70) {
+                gameState = "GOOD_PATH";
+                textInterface.display("The village is showing clear signs of recovery!");
+            } else if (villageHealth < 40 || trustLevel < 40 || playerHealth < 50) {
+                gameState = "CRISIS_PATH";
+                textInterface.display("The village is descending into chaos...");
+            } else {
+                gameState = "MIXED_PATH";
+                textInterface.display("The village remains divided about your methods.");
+            }
+        }
+
+        // Advance to next day
+        textInterface.display("\nDay " + currentDay + " has ended.");
+        currentDay++;
+    }
+
+    // Display game ending
+    private void displayEnding() {
+        textInterface.display("\n===============================");
+        textInterface.display("       THE END");
+        textInterface.display("===============================");
+
+        switch (gameState) {
+            case "GOOD_PATH":
+                textInterface.display("You successfully led the village to recovery!");
+                textInterface.display("The plague has been contained, with " + village.getRecoveredCount() +
+                        " villagers recovered and " + village.getDeathCount() + " lost.");
+                textInterface.display("Your methods will be remembered for generations to come.");
+                break;
+
+            case "MIXED_PATH":
+                textInterface.display("The village survived, though divisions remain.");
+                textInterface
+                        .display("Some villagers still cling to old methods, while others embrace your teachings.");
+                textInterface.display("The death toll stands at " + village.getDeathCount() +
+                        ", with " + village.getRecoveredCount() + " recovered.");
+                break;
+
+            case "CRISIS_PATH":
+                textInterface.display("The plague overwhelmed the village despite your efforts.");
+                textInterface.display("With " + village.getDeathCount() + " dead and the social order collapsed,");
+                textInterface
+                        .display("few remain to carry on. Your methods were sound, but fear and superstition won out.");
+                break;
+
+            case "BAD_ENDING":
+                textInterface.display("You succumbed to the plague, unable to complete your mission.");
+                textInterface.display("Without your guidance, the village descends into panic and chaos.");
+                textInterface.display("Perhaps your notes will help the next plague doctor who comes to Alderbrook.");
+                break;
+        }
     }
 
     private void educateAboutHygiene() {
@@ -629,212 +1022,6 @@ public class Logic {
             village.improveEducation(4);
             village.improveTrust(2);
             textInterface.display("You acknowledge their struggles and focus on making the best of available foods.");
-        }
-    }
-
-    // ACTION CHOICE 6 - Speak with a Villager
-    private void speakWithVillager() {
-        textInterface.display("\nWho would you like to speak with?");
-        textInterface.display("1: Village Elder (Thomas)");
-        textInterface.display("2: Lord Harwick");
-        textInterface.display("3: Doctor Elias");
-        textInterface.display("4: Merchant Anna");
-
-        int choice = textInterface.getChoice("Choose a villager to speak with", 1, 4);
-        String npcKey;
-
-        switch (choice) {
-            case 1:
-                npcKey = "elder";
-                break;
-            case 2:
-                npcKey = "lord";
-                break;
-            case 3:
-                npcKey = "doctor";
-                break;
-            case 4:
-                npcKey = "merchant";
-                break;
-            default:
-                return;
-        }
-
-        interactWithVillager(npcKey);
-    }
-
-    // FOLLOWING ACTION OF CHOICE 6
-    private void interactWithVillager(String npcKey) {
-        if (!keyVillagers.containsKey(npcKey)) {
-            textInterface.display("That person isn't available.");
-            return;
-        }
-
-        NPC npc = keyVillagers.get(npcKey);
-        textInterface.display(npc.getInteractionDialogue());
-
-        // If this is a special NPC, offer special interactions
-        if (npc instanceof SpecialNPC) {
-            SpecialNPC specialNPC = (SpecialNPC) npc;
-
-            textInterface.display("\nHow would you like to interact?");
-            textInterface.display("1: General conversation");
-            textInterface.display("2: Ask for assistance");
-            if (specialNPC.hasQuestAvailable()) {
-                textInterface.display("3: Ask if they need help");
-            }
-            int max = specialNPC.hasQuestAvailable() ? 3 : 2;
-            int choice = textInterface.getChoice("Choose an interaction", 1, max);
-
-            switch (choice) {
-                case 1:
-                    textInterface.display(specialNPC.getRandomDialogue());
-                    break;
-                case 2:
-                    textInterface.display(specialNPC.useSpecialAbility(player, village));
-                    break;
-                case 3:
-                    String questDescription = specialNPC.offerQuest();
-                    textInterface.display(questDescription);
-                    boolean accept = textInterface.askYesNo("Will you accept this quest?");
-                    if (accept) {
-                        String questKey = npcKey + "_quest";
-                        if (!activeQuests.contains(questKey)) {
-                            activeQuests.add(questKey);
-                            questProgress.put(questKey, 0);
-                            textInterface.display("You've accepted the quest!");
-                            textInterface.display("Check your status to track progress.");
-                        } else {
-                            textInterface.display("You already have this quest.");
-                        }
-                    } else {
-                        textInterface.display("You decline the request.");
-                    }
-                    break;
-            }
-        } else {
-            // Regular NPC conversation
-            if (npc.getRelationshipLevel() > 60) {
-                textInterface.display(npc.getName() + " shares village gossip with you.");
-                npc.improveRelationship(2);
-            } else {
-                textInterface.display("You have a brief, formal conversation.");
-                npc.improveRelationship(1);
-            }
-        }
-    }
-
-    private void updateQuestProgress(String questKey, int progress) {
-        if (activeQuests.contains(questKey)) {
-            int currentProgress = questProgress.getOrDefault(questKey, 0);
-            questProgress.put(questKey, currentProgress + progress);
-
-            // Check if quest is complete
-            if (questKey.equals("doctor_quest") && questProgress.get(questKey) >= 10) {
-                completeQuest(questKey, "doctor");
-            } else if (questKey.equals("lord_quest") && questProgress.get(questKey) >= 3) {
-                completeQuest(questKey, "lord");
-            }
-        }
-    }
-
-    private void completeQuest(String questKey, String npcKey) {
-        activeQuests.remove(questKey);
-        questProgress.remove(questKey);
-
-        if (keyVillagers.containsKey(npcKey) && keyVillagers.get(npcKey) instanceof SpecialNPC) {
-            SpecialNPC npc = (SpecialNPC) keyVillagers.get(npcKey);
-            npc.completeQuest();
-
-            textInterface.display("\n=== QUEST COMPLETED ===");
-            textInterface.display("You completed " + npc.getName() + "'s quest!");
-
-            // Add rewards
-            if (npcKey.equals("doctor")) {
-                player.increaseDoctorSkill(3);
-                player.addItem("advanced_medicine", 2);
-                textInterface.display("Doctor Elias teaches you advanced techniques and gives you special medicine!");
-                textInterface.display("Your doctor skill increased by 3!");
-            } else if (npcKey.equals("lord")) {
-                village.improveTrust(15);
-                player.addItem("coins", 20);
-                player.addItem("noble_seal", 1);
-                textInterface.display("Lord Harwick speaks highly of you and rewards you with coins and his seal!");
-                textInterface.display("Village trust increased significantly!");
-            }
-        }
-    }
-
-    // End the current day
-    private void endDay() {
-        // Update village status
-        village.updateDailyStatus();
-
-        // Update player status
-        player.updateDailyStatus();
-
-        // Check for critical health
-        if (player.getHealth() < 20) {
-            gameState = "BAD_ENDING";
-        }
-
-        // Check for branching on day 20
-        if (currentDay == 20) {
-            int villageHealth = 100 - (village.getInfectedCount() * 100 / village.getPopulation());
-            int trustLevel = village.getTrustLevel();
-            int playerHealth = player.getHealth();
-
-            if (villageHealth > 60 && trustLevel > 65 && playerHealth > 70) {
-                gameState = "GOOD_PATH";
-                textInterface.display("The village is showing clear signs of recovery!");
-            } else if (villageHealth < 40 || trustLevel < 40 || playerHealth < 50) {
-                gameState = "CRISIS_PATH";
-                textInterface.display("The village is descending into chaos...");
-            } else {
-                gameState = "MIXED_PATH";
-                textInterface.display("The village remains divided about your methods.");
-            }
-        }
-
-        // Advance to next day
-        textInterface.display("\nDay " + currentDay + " has ended.");
-        currentDay++;
-    }
-
-    // Display game ending
-    private void displayEnding() {
-        textInterface.display("\n===============================");
-        textInterface.display("       THE END");
-        textInterface.display("===============================");
-
-        switch (gameState) {
-            case "GOOD_PATH":
-                textInterface.display("You successfully led the village to recovery!");
-                textInterface.display("The plague has been contained, with " + village.getRecoveredCount() +
-                        " villagers recovered and " + village.getDeathCount() + " lost.");
-                textInterface.display("Your methods will be remembered for generations to come.");
-                break;
-
-            case "MIXED_PATH":
-                textInterface.display("The village survived, though divisions remain.");
-                textInterface
-                        .display("Some villagers still cling to old methods, while others embrace your teachings.");
-                textInterface.display("The death toll stands at " + village.getDeathCount() +
-                        ", with " + village.getRecoveredCount() + " recovered.");
-                break;
-
-            case "CRISIS_PATH":
-                textInterface.display("The plague overwhelmed the village despite your efforts.");
-                textInterface.display("With " + village.getDeathCount() + " dead and the social order collapsed,");
-                textInterface
-                        .display("few remain to carry on. Your methods were sound, but fear and superstition won out.");
-                break;
-
-            case "BAD_ENDING":
-                textInterface.display("You succumbed to the plague, unable to complete your mission.");
-                textInterface.display("Without your guidance, the village descends into panic and chaos.");
-                textInterface.display("Perhaps your notes will help the next plague doctor who comes to Alderbrook.");
-                break;
         }
     }
 

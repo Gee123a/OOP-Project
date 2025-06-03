@@ -35,7 +35,7 @@ public class Player extends Character {
     public void useAdvancedMedicine() {
         if (hasItem("advanced_medicine")) {
             useItem("advanced_medicine", 1);
-            setHealth(Math.min(getHealth() + 25, 100));
+            health = Math.min(health + 30, 100);
             System.out.println("You use advanced medicine. Your health improves significantly!");
         }
     }
@@ -44,19 +44,19 @@ public class Player extends Character {
     public void updateDailyStatus() {
         // Health decreases if cleanliness is low
         if (cleanliness < 30) {
-            setHealth(getHealth() - 15);
+            health -= 15;
         } else if (cleanliness < 60) {
-            setHealth(getHealth() - 5);
+            health -= 5;
         }
 
         // Exhaustion affects health
         if (energy < 20) {
-            setHealth(getHealth() - 10);
+            health -= 10;
         }
 
         // Natural recovery if rested
         if (energy > 70) {
-            setHealth(getHealth() + 3);
+            health += 3;
         }
 
         // Natural energy recovery overnight

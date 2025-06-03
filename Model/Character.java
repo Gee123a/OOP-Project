@@ -4,9 +4,9 @@ package Model;
  * Base class representing any character in the game world
  */
 public abstract class Character {
-    private String name;
-    private int health;
-    private boolean isSick;
+    protected String name;
+    protected int health;
+    protected boolean isSick;
     
     public Character(String name, int health, boolean isSick) {
         this.name = name;
@@ -44,7 +44,7 @@ public abstract class Character {
     }
     
     // Abstract method that subclasses must implement
-    public abstract void updateDailyStatus();
+    protected abstract void updateDailyStatus();
     
     // Getters and setters
     public String getName() { return name; }

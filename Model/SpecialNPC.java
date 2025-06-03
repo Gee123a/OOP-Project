@@ -98,6 +98,23 @@ public class SpecialNPC extends NPC {
                 player.increaseDoctorSkill(2);
                 return "Doctor Elias shares some medical techniques with you. Your skills improve!";
 
+            case "Royal Physician":
+                // Royal physician can teach advanced techniques
+                player.increaseDoctorSkill(2);
+                player.addItem("royal_medicine", 1);
+                return "Marcus Aurelius teaches you a royal healing technique and provides rare medicine!";
+
+            case "Traveling Scholar":
+                // Scholar can boost village education
+                village.improveEducation(8);
+                return "Brother Benedict shares crucial research that greatly improves village knowledge!";
+
+            case "Merchant Prince":
+                // Merchant can provide supplies
+                player.addItem("protective_gear", 1);
+                player.addItem("herbs", 2);
+                return "Lady Vivienne uses her trade connections to acquire medical supplies for you!";
+
             default:
                 return getName() + " uses their influence to help your cause.";
         }
@@ -128,6 +145,15 @@ public class SpecialNPC extends NPC {
 
             case "Local Physician":
                 return "I've been researching an herbal remedy. Gather 10 herbs for me to test it.";
+
+            case "Royal Physician":
+                return "I know of a sacred spring with healing waters. Help me gather 3 special water samples.";
+
+            case "Traveling Scholar":
+                return "Help me complete my research by educating villagers 3 times on different topics.";
+
+            case "Merchant Prince":
+                return "I need you to establish trust by successfully treating 5 merchant families.";
 
             default:
                 return "I have a task that requires your expertise, doctor.";

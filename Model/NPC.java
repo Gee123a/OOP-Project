@@ -16,9 +16,9 @@ public class NPC extends Character {
     public void updateDailyStatus() {
         // Daily health changes
         if (isSick()) {
-            setHealth(getHealth() - 5); // Sick NPCs get worse
-        } else if (getHealth() < 100) {
-            setHealth(getHealth() + 2); // Natural healing
+            health -= 5; 
+        } else if (health < 100) {
+            health += 2; // Natural healing
         }
         
         // NPCs might recover naturally (low chance)
