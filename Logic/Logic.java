@@ -19,18 +19,18 @@ public class Logic {
     private Scanner scanner = new Scanner(System.in);
     private Random random = new Random();
     private String gameState = "ONGOING";
-    private String VERSION = "1.0";
-    private String LAST_UPDATED = "2025-05-25";
+    private String VERSION = "1.1";
+    private String LAST_UPDATED = "2025-06-03";
     private ConsoleTextInterface textInterface = new ConsoleTextInterface();
-    private List<String> activeQuests = new ArrayList<>();
+    private ArrayList<String> activeQuests = new ArrayList<>();
     private Map<String, Integer> questProgress = new HashMap<>();
 
     public void run() {
-        textInterface.display("Plague Doctor's Day v" + VERSION);
-        textInterface.display("Last updated: " + LAST_UPDATED);
-
         // Initialize game
         initializeGame();
+
+        textInterface.display("Plague Doctor's Day v" + VERSION);
+        textInterface.display("Last updated: " + LAST_UPDATED);
 
         // Show introduction
         showIntroduction();
