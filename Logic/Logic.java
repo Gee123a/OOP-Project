@@ -28,7 +28,6 @@ public class Logic {
     public void run() {
         textInterface.display("Plague Doctor's Day v" + VERSION);
         textInterface.display("Last updated: " + LAST_UPDATED);
-        
 
         // Initialize game
         initializeGame();
@@ -232,7 +231,8 @@ public class Logic {
                             player.setCleanliness(player.getCleanliness() - 10);
                             village.improveTrust(5);
                         } else {
-                            textInterface.display("You don't have protective gear! You're forced to keep your distance.");
+                            textInterface
+                                    .display("You don't have protective gear! You're forced to keep your distance.");
                             village.lowerTrust(5);
                         }
                         break;
@@ -572,7 +572,8 @@ public class Logic {
 
             case "MIXED_PATH":
                 textInterface.display("The village survived, though divisions remain.");
-                textInterface.display("Some villagers still cling to old methods, while others embrace your teachings.");
+                textInterface
+                        .display("Some villagers still cling to old methods, while others embrace your teachings.");
                 textInterface.display("The death toll stands at " + village.getDeathCount() +
                         ", with " + village.getRecoveredCount() + " recovered.");
                 break;
@@ -580,7 +581,8 @@ public class Logic {
             case "CRISIS_PATH":
                 textInterface.display("The plague overwhelmed the village despite your efforts.");
                 textInterface.display("With " + village.getDeathCount() + " dead and the social order collapsed,");
-                textInterface.display("few remain to carry on. Your methods were sound, but fear and superstition won out.");
+                textInterface
+                        .display("few remain to carry on. Your methods were sound, but fear and superstition won out.");
                 break;
 
             case "BAD_ENDING":
@@ -608,7 +610,8 @@ public class Logic {
         textInterface.display(
                 "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
         textInterface.display("You can also accept quests from special NPCs to gain rewards and improve your skills.");
-        textInterface.display("Use your resources wisely and make strategic decisions to lead the village to recovery.");
+        textInterface
+                .display("Use your resources wisely and make strategic decisions to lead the village to recovery.");
         textInterface.display("Good luck, doctor! The fate of Alderbrook village is in your hands.");
         textInterface.display("Press ENTER to continue to the game...");
         scanner.nextLine();
