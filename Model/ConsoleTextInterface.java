@@ -24,6 +24,9 @@ public class ConsoleTextInterface {
             System.out.print(prompt + " (" + min + "-" + max + "): ");
             try {
                 choice = Integer.parseInt(scanner.nextLine().trim());
+                if(choice < min || choice > max) {
+                    System.out.println("Please enter a valid number.");
+                }
             } catch (NumberFormatException e) {
                 System.out.println("Please enter a valid number.");
             }

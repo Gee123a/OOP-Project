@@ -21,7 +21,7 @@ public class Logic {
     private String gameState = "ONGOING";
     private String VERSION = "1.0";
     private String LAST_UPDATED = "2025-05-25";
-    private ConsoleTextInterface textInterface;
+    private ConsoleTextInterface textInterface = new ConsoleTextInterface();
     private List<String> activeQuests = new ArrayList<>();
     private Map<String, Integer> questProgress = new HashMap<>();
 
@@ -36,8 +36,10 @@ public class Logic {
         // Show introduction
         showIntroduction();
 
+        // Show tutorial (optional)
         showTutorial();
-        // Main game loop
+
+        // Main Game loop
         while (currentDay <= TOTAL_DAYS && gameState.equals("ONGOING")) {
             // Display day header
             textInterface.display("\n=== DAY " + currentDay + " ===");
@@ -45,8 +47,8 @@ public class Logic {
             // Show daily status
             displayStatus();
 
-            // Process day's events
-            processDailyEvents();
+            // Process special events it there's any
+            processSpecialEvents();
 
             // Process player actions
             if (gameState.equals("ONGOING")) {
@@ -99,13 +101,13 @@ public class Logic {
 
     // Show game introduction
     private void showIntroduction() {
-        textInterface.display("\n===============================");
-        textInterface.display("    PLAGUE DOCTOR'S DAY");
-        textInterface.display("===============================");
+        textInterface.display("\n============================================================");
+        textInterface.display("                  PLAGUE DOCTOR'S DAY");
+        textInterface.display("============================================================");
         textInterface.display("The year is 1348. The Black Death ravages Europe.");
         textInterface.display("You arrive at Alderbrook village as their new plague doctor.");
         textInterface.display("Can you save the village over the next 30 days?");
-        textInterface.display("===============================");
+        textInterface.display("============================================================");
         String username = getUsername();
         textInterface.display("Welcome, Doctor " + username + "!");
         textInterface.display("Press ENTER to begin your journey...");
@@ -148,7 +150,7 @@ public class Logic {
     }
 
     // Process events for the current day
-    private void processDailyEvents() {
+    private void processSpecialEvents() {
         // Day 1 introduction event
         if (currentDay == 1) {
             textInterface.display("The village elder, Thomas, greets you at the gate.");
@@ -202,7 +204,7 @@ public class Logic {
             }
         }
 
-        // Day 7 - sick traveler event
+        // Day 7 - 1st random encounter event
         else if (currentDay == 7) {
             if (random.nextDouble() < 0.7) { // 70% chance of this event
                 textInterface.display("\n=== SPECIAL EVENT ===");
@@ -591,6 +593,7 @@ public class Logic {
         }
     }
 
+    // Display game tutorial
     private void showTutorial() {
         textInterface.display("\n=== TUTORIAL ===");
 
@@ -598,15 +601,12 @@ public class Logic {
         boolean skipTutorial = textInterface.askYesNo("Would you like to skip the tutorial?");
         if (skipTutorial)
             return;
-        textInterface.display(
-                "In this game, you will play as a plague doctor trying to save a village from the Black Death.");
-        textInterface.display(
-                "You will manage your health, cleanliness, and energy while treating patients and interacting with villagers.");
+        textInterface.display("In this game, you will play as a plague doctor trying to save a village from the Black Death.");
+        textInterface.display("You will manage your HEALTH, CLEANLINESS, and ENERGY while treating patients and interacting with villagers.");
         textInterface.display("Each day, you will have a limited number of actions to perform.");
         textInterface.display("You can treat patients, gather herbs, educate villagers, and interact with key NPCs.");
         textInterface.display("Your choices will affect the village's trust in you and your overall success.");
-        textInterface.display(
-                "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
+        textInterface.display("Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
         textInterface.display("You can also accept quests from special NPCs to gain rewards and improve your skills.");
         textInterface.display("Use your resources wisely and make strategic decisions to lead the village to recovery.");
         textInterface.display("Good luck, doctor! The fate of Alderbrook village is in your hands.");
