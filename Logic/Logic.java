@@ -220,6 +220,9 @@ public class Logic {
                     case 1:
                         textInterface.display("You help the traveler personally, risking infection.");
                         player.setCleanliness(player.getCleanliness() - 30);
+                        keyVillagers.put("traveler",
+                                new NPC("Sick Traveler", "Unknown",
+                                        "A mysterious traveler who collapsed at the gates.", true));
                         village.improveTrust(15);
                         break;
                     case 2:
@@ -237,6 +240,9 @@ public class Logic {
                                     .display("You don't have protective gear! You're forced to keep your distance.");
                             village.lowerTrust(5);
                         }
+                        keyVillagers.put("traveler",
+                                new NPC("Sick Traveler", "Unknown",
+                                        "A mysterious traveler who collapsed at the gates.", true));
                         break;
                 }
             }
