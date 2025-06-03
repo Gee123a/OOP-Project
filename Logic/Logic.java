@@ -1,7 +1,7 @@
 package Logic;
 
 import Model.*;
-import Model.ConsoleTextInterface;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +65,7 @@ public class Logic {
 
     // Get current date and time formatted
     private String getCurrentDateTime() {
-        return "2025-05-20 04:44:26";
+        return java.time.LocalDateTime.now().toString();
     }
 
     // Get username for personalization
@@ -309,12 +309,35 @@ public class Logic {
                     break;
 
                 case 5: // Educate
-                    textInterface.display("You spend time educating villagers about disease prevention.");
-                    player.setEnergy(player.getEnergy() - 10);
-                    village.improveEducation(5);
-                    village.improveTrust(2);
-                    textInterface.display("The villagers listen attentively. Village education level is now: " +
-                            village.getEducationLevel());
+                    textInterface.display("\nYou decide to educate the villagers about disease prevention.");
+                    textInterface.display("What topic would you like to focus on today?");
+                    textInterface.display("1: Personal hygiene and cleanliness");
+                    textInterface.display("2: Disease transmission and prevention");
+                    textInterface.display("3: Herbal medicine and treatments");
+                    textInterface.display("4: Quarantine and isolation practices");
+                    textInterface.display("5: Nutrition and strengthening the body");
+
+                    int educationChoice = textInterface.getChoice("Choose an educational topic", 1, 5);
+
+                    switch (educationChoice) {
+                        case 1: // Personal hygiene
+                            educateAboutHygiene();
+                            break;
+                        case 2: // Disease transmission
+                            educateAboutTransmission();
+                            break;
+                        case 3: // Herbal medicine
+                            educateAboutHerbalMedicine();
+                            break;
+                        case 4: // Quarantine practices
+                            educateAboutQuarantine();
+                            break;
+                        case 5: // Nutrition
+                            educateAboutNutrition();
+                            break;
+                    }
+
+                    player.setEnergy(player.getEnergy() - 15); // Slightly more energy cost for detailed teaching
                     actionsRemaining--;
                     break;
 
@@ -595,6 +618,200 @@ public class Logic {
         }
     }
 
+    private void educateAboutHygiene() {
+        textInterface.display("\n=== HYGIENE AND CLEANLINESS EDUCATION ===");
+        textInterface.display("You gather the villagers in the town square to teach about personal cleanliness.");
+
+        textInterface.display("\n\"Listen carefully,\" you begin, adjusting your plague mask.");
+        textInterface.display("\"The first defense against the pestilence is cleanliness of body and home.\"");
+
+        textInterface.display("\n=== KEY LESSONS YOU TEACH ===");
+        textInterface.display("• HAND WASHING: \"Wash your hands frequently with soap and clean water,");
+        textInterface.display("  especially before eating and after touching sick persons.\"");
+        textInterface.display("• BATHING: \"Bathe regularly to remove corrupt humors from the skin.\"");
+        textInterface
+                .display("• CLEAN CLOTHING: \"Change and wash your garments often - dirty cloth harbors disease.\"");
+        textInterface.display("• HOME SANITATION: \"Keep your homes clean, dispose of waste properly,");
+        textInterface.display("  and ensure good air circulation.\"");
+
+        // Show villager reactions based on education level
+        if (village.getEducationLevel() < 30) {
+            textInterface.display("\nMany villagers look skeptical. Some mutter about 'foreign ideas.'");
+            textInterface
+                    .display("An elder speaks up: \"Our grandparents never bathed so much and lived long lives!\"");
+            village.improveEducation(3);
+            village.improveTrust(1);
+        } else if (village.getEducationLevel() < 60) {
+            textInterface.display("\nSome villagers nod thoughtfully, while others still seem uncertain.");
+            textInterface.display("A young mother asks: \"How often should we wash our children, doctor?\"");
+            village.improveEducation(5);
+            village.improveTrust(3);
+        } else {
+            textInterface.display("\nThe villagers listen attentively and ask intelligent questions.");
+            textInterface.display("Several people volunteer to help spread these practices to their families.");
+            village.improveEducation(7);
+            village.improveTrust(4);
+            village.improveCleanliness(5);
+        }
+
+        textInterface.display("\nYou see some villagers immediately checking their hands and clothes.");
+        textInterface.display("Your lessons about cleanliness are slowly taking root in the community.");
+    }
+
+    private void educateAboutTransmission() {
+        textInterface.display("\n=== DISEASE TRANSMISSION EDUCATION ===");
+        textInterface.display("You explain how the plague spreads from person to person.");
+
+        textInterface.display("\n\"The pestilence travels in ways both seen and unseen,\" you explain.");
+        textInterface.display("\"Understanding its paths helps us block its advance.\"");
+
+        textInterface.display("\n=== TRANSMISSION METHODS YOU EXPLAIN ===");
+        textInterface.display("• CLOSE CONTACT: \"The disease passes through the breath and touch of the sick.\"");
+        textInterface.display("• CONTAMINATED ITEMS: \"Clothing, bedding, and tools of the infected carry danger.\"");
+        textInterface.display("• POOR SANITATION: \"Waste and filth create breeding grounds for corruption.\"");
+        textInterface.display("• CROWDED SPACES: \"Markets and gatherings allow rapid spread between people.\"");
+
+        textInterface.display("\n=== PREVENTION STRATEGIES ===");
+        textInterface.display("• DISTANCE: \"Maintain space from the visibly sick - arm's length minimum.\"");
+        textInterface.display("• AVOID CROWDS: \"Limit time in busy markets and large gatherings.\"");
+        textInterface.display("• CLEAN SURFACES: \"Wash items that may have contacted the sick.\"");
+        textInterface.display("• ISOLATE THE ILL: \"Keep sick family members in separate rooms when possible.\"");
+
+        if (village.getEducationLevel() < 40) {
+            textInterface.display("\nSeveral villagers argue: \"But we must care for our sick family members!\"");
+            textInterface.display("You respond: \"Care for them, yes, but with precautions to protect yourselves.\"");
+            village.improveEducation(4);
+            village.improveTrust(2);
+        } else {
+            textInterface.display("\nThe villagers grasp these concepts quickly and begin discussing");
+            textInterface.display("how to reorganize their homes and daily routines.");
+            village.improveEducation(6);
+            village.improveTrust(3);
+            // Slight immediate effect on infection reduction
+            if (random.nextDouble() < 0.3) {
+                textInterface.display("Your education immediately helps - some villagers avoid a potential exposure!");
+            }
+        }
+    }
+
+    private void educateAboutHerbalMedicine() {
+        textInterface.display("\n=== HERBAL MEDICINE EDUCATION ===");
+
+        if (player.hasItem("herbs")) {
+            textInterface.display("You display your collection of herbs to teach their medicinal properties.");
+            textInterface.display("\n\"Nature provides remedies for those who know where to look,\" you explain.");
+
+            textInterface.display("\n=== MEDICINAL HERBS AND THEIR USES ===");
+            textInterface.display("• WILLOW BARK: \"Chew this to reduce fever and ease pain in the joints.\"");
+            textInterface.display("• ELDERBERRY: \"Make tea from these berries to strengthen the body's defenses.\"");
+            textInterface.display("• GARLIC: \"Eat daily to purify the blood and ward off corruption.\"");
+            textInterface.display("• THYME: \"Burn as incense to cleanse the air of pestilent vapors.\"");
+            textInterface.display("• CHAMOMILE: \"Brew tea to calm the spirit and aid restful sleep.\"");
+
+            textInterface.display("\n=== PREPARATION METHODS ===");
+            textInterface.display("• TEAS: \"Steep herbs in hot water for the count of 200 heartbeats.\"");
+            textInterface.display("• POULTICES: \"Crush fresh herbs and apply to wounds or swellings.\"");
+            textInterface.display("• TINCTURES: \"Soak herbs in wine for seven days to extract their essence.\"");
+
+            // Consume some herbs in the demonstration
+            player.useItem("herbs", 1);
+            textInterface.display("\nYou use one herb in your demonstration.");
+
+            village.improveEducation(6);
+            village.improveTrust(4);
+            textInterface.display("Several villagers take notes and promise to search for these herbs.");
+
+        } else {
+            textInterface.display("You realize you don't have herbs to demonstrate with!");
+            textInterface.display("You explain herbal medicine theory, but without examples, it's less effective.");
+            village.improveEducation(2);
+            village.improveTrust(1);
+            textInterface.display("The villagers seem interested but want to see actual herbs next time.");
+        }
+    }
+
+    private void educateAboutQuarantine() {
+        textInterface.display("\n=== QUARANTINE AND ISOLATION EDUCATION ===");
+        textInterface.display("You explain the importance of separating the sick from the healthy.");
+
+        textInterface.display("\n\"Sometimes, harsh measures preserve the greater good,\" you begin solemnly.");
+        textInterface.display("\"Separation protects the many, even as we care for the few.\"");
+
+        textInterface.display("\n=== QUARANTINE PRINCIPLES ===");
+        textInterface.display("• EARLY ISOLATION: \"Separate those showing first signs of sickness immediately.\"");
+        textInterface.display("• DEDICATED CAREGIVERS: \"Assign specific people to tend the sick - not everyone.\"");
+        textInterface.display("• BARRIER PROTECTION: \"Use separate dishes, clothing, and bedding for the ill.\"");
+        textInterface.display("• SCHEDULED CARE: \"Visit the sick at set times, not constantly throughout the day.\"");
+
+        textInterface.display("\n=== COMMUNITY MEASURES ===");
+        textInterface.display("• TRAVEL RESTRICTIONS: \"Limit movement between infected and clean areas.\"");
+        textInterface.display("• MARKET CONTROLS: \"Reduce market days and limit crowd sizes.\"");
+        textInterface.display("• FAMILY PODS: \"Keep families together but separate from other families.\"");
+
+        // Different reactions based on current quarantine status
+        if (village.isQuarantineActive()) {
+            textInterface.display("\nSince quarantine is already active, villagers understand its necessity better.");
+            textInterface.display("\"We see the wisdom in these measures,\" an elder acknowledges.");
+            village.improveEducation(5);
+            village.improveTrust(3);
+        } else {
+            textInterface.display("\nSome villagers look uncomfortable with these strict measures.");
+            textInterface.display("\"You ask us to abandon our sick neighbors?\" someone challenges.");
+            textInterface.display("You explain: \"Not abandon - protect them AND protect yourselves.\"");
+            village.improveEducation(4);
+
+            if (village.getTrustLevel() > 60) {
+                village.improveTrust(2);
+                textInterface.display("Most villagers trust your judgment, even if they don't like the measures.");
+            } else {
+                village.lowerTrust(1);
+                textInterface.display("Some villagers remain suspicious of your 'foreign' ideas about separation.");
+            }
+        }
+    }
+
+    private void educateAboutNutrition() {
+        textInterface.display("\n=== NUTRITION AND BODY STRENGTHENING EDUCATION ===");
+        textInterface.display("You teach about foods and practices that strengthen the body against disease.");
+
+        textInterface.display("\n\"A strong body resists corruption better than a weak one,\" you explain.");
+        textInterface.display("\"What we consume shapes our ability to fight the pestilence.\"");
+
+        textInterface.display("\n=== STRENGTHENING FOODS ===");
+        textInterface.display("• FRESH FRUITS: \"Apples and berries purify the blood and provide vital humors.\"");
+        textInterface.display("• VEGETABLES: \"Onions, leeks, and cabbage build resistance to disease.\"");
+        textInterface
+                .display("• CLEAN WATER: \"Pure water flushes corruption from the body - avoid stagnant sources.\"");
+        textInterface
+                .display("• MODERATE MEAT: \"Fresh meat provides strength, but avoid excess during plague times.\"");
+        textInterface.display("• HONEY: \"Nature's medicine - soothes throat and provides clean energy.\"");
+
+        textInterface.display("\n=== FOODS TO AVOID ===");
+        textInterface.display("• SPOILED FOODS: \"Rotten meat and moldy bread invite corruption into the body.\"");
+        textInterface.display("• EXCESS ALCOHOL: \"Wine in moderation cleanses, but excess weakens the spirit.\"");
+        textInterface
+                .display("• HEAVY SPICES: \"During plague, simple foods are easier for weakened bodies to process.\"");
+
+        textInterface.display("\n=== HEALTHY PRACTICES ===");
+        textInterface.display("• REGULAR MEALS: \"Eat at consistent times to maintain body rhythm.\"");
+        textInterface.display("• PORTION CONTROL: \"Better to eat less frequently than to overburden the stomach.\"");
+        textInterface.display("• FOOD PREPARATION: \"Cook thoroughly and keep cooking areas clean.\"");
+
+        if (village.getCleanliness() > 50) {
+            textInterface
+                    .display("\nThe villagers respond well - their clean environment supports your nutrition advice.");
+            village.improveEducation(6);
+            village.improveTrust(4);
+            textInterface.display("Several families volunteer to share healthy recipes with their neighbors.");
+        } else {
+            textInterface.display("\nSome villagers point out their limited food options in these hard times.");
+            textInterface.display("\"We eat what we can find, doctor,\" a mother explains sadly.");
+            village.improveEducation(4);
+            village.improveTrust(2);
+            textInterface.display("You acknowledge their struggles and focus on making the best of available foods.");
+        }
+    }
+
     // Display game tutorial
     private void showTutorial() {
         textInterface.display("\n=== TUTORIAL ===");
@@ -603,12 +820,15 @@ public class Logic {
         boolean skipTutorial = textInterface.askYesNo("Would you like to skip the tutorial?");
         if (skipTutorial)
             return;
-        textInterface.display("In this game, you will play as a plague doctor trying to save a village from the Black Death.");
-        textInterface.display("You will manage your HEALTH, CLEANLINESS, and ENERGY while treating patients and interacting with villagers.");
+        textInterface.display(
+                "In this game, you will play as a plague doctor trying to save a village from the Black Death.");
+        textInterface.display(
+                "You will manage your HEALTH, CLEANLINESS, and ENERGY while treating patients and interacting with villagers.");
         textInterface.display("Each day, you will have a limited number of actions to perform.");
         textInterface.display("You can treat patients, gather herbs, educate villagers, and interact with key NPCs.");
         textInterface.display("Your choices will affect the village's trust in you and your overall success.");
-        textInterface.display("Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
+        textInterface.display(
+                "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
         textInterface.display("You can also accept quests from special NPCs to gain rewards and improve your skills.");
         textInterface
                 .display("Use your resources wisely and make strategic decisions to lead the village to recovery.");
