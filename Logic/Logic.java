@@ -37,18 +37,20 @@ public class Logic {
         // Main Game loop
         while (currentDay <= TOTAL_DAYS && gameState.equals("ONGOING")) {
             // Display day header
+            textInterface.shortPause();
             textInterface.display("\n=== DAY " + currentDay + " ===");
 
             // Show daily status
             displayStatus();
 
-            // Process special events it there's any
+            // Process special events if there's any
             processSpecialEvents();
 
             // Process player actions
             if (gameState.equals("ONGOING")) {
                 processPlayerActions();
                 endDay();
+                textInterface.longPause();
             }
         }
 
@@ -115,18 +117,20 @@ public class Logic {
         if (village.isQuarantineActive()) {
             textInterface.display("*** QUARANTINE ACTIVE ***");
         }
+        textInterface.longPause();
         textInterface.display("\n=== PLAYER STATUS ===");
         textInterface.display("Your Health: " + player.getHealth() + "/100");
         textInterface.display("Cleanliness: " + player.getCleanliness() + "/100");
         textInterface.display("Energy: " + player.getEnergy() + "/100");
         textInterface.display("Doctor Skill: " + player.getDoctorSkill() + "/100");
-
+        textInterface.longPause();
         textInterface.display("\nInventory:");
         for (Map.Entry<String, Integer> item : player.getInventory().entrySet()) {
             textInterface.display("- " + item.getKey() + ": " + item.getValue());
         }
         // In displayStatus(), update the quest display section:
         if (!activeQuests.isEmpty()) {
+            textInterface.longPause();
             textInterface.display("\n=== ACTIVE QUESTS ===");
             for (String quest : activeQuests) {
                 int progress = questProgress.getOrDefault(quest, 0);
