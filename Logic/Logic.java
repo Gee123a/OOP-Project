@@ -4,10 +4,8 @@ import Model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Logic {
 
@@ -16,11 +14,10 @@ public class Logic {
     private Map<String, NPC> keyVillagers;
     private int currentDay = 1;
     private int TOTAL_DAYS = 30;
-    private Scanner scanner = new Scanner(System.in);
     private Random random = new Random();
     private String gameState = "ONGOING";
     private String VERSION = "1.1";
-    private String LAST_UPDATED = "2025-06-03";
+
     private ConsoleTextInterface textInterface = new ConsoleTextInterface();
     private ArrayList<String> activeQuests = new ArrayList<>();
     private Map<String, Integer> questProgress = new HashMap<>();
@@ -30,7 +27,6 @@ public class Logic {
         initializeGame();
 
         textInterface.display("Plague Doctor's Day v" + VERSION);
-        textInterface.display("Last updated: " + LAST_UPDATED);
 
         // Show introduction
         showIntroduction();
@@ -61,11 +57,6 @@ public class Logic {
 
         textInterface.display("\nThank you for playing!");
 
-    }
-
-    // Get current date and time formatted
-    private String getCurrentDateTime() {
-        return java.time.LocalDateTime.now().toString();
     }
 
     // Get username for personalization
@@ -103,14 +94,13 @@ public class Logic {
         textInterface.display("\n============================================================");
         textInterface.display("                  PLAGUE DOCTOR'S DAY");
         textInterface.display("============================================================");
-        textInterface.display("The year is 1348. The Black Death ravages Europe.");
-        textInterface.display("You arrive at Alderbrook village as their new plague doctor.");
-        textInterface.display("Can you save the village over the next 30 days?");
+        textInterface.displayStory("The year is 1348. The Black Death ravages Europe.");
+        textInterface.displayStory("You arrive at Alderbrook village as their new plague doctor.");
+        textInterface.displayDramatic("Can you save the village over the next 30 days?");
         textInterface.display("============================================================");
         String username = getUsername();
-        textInterface.display("Welcome, Doctor " + username + "!");
-        textInterface.display("Press ENTER to begin your journey...");
-        scanner.nextLine();
+        textInterface.displayNotification("Welcome, Doctor " + username + "!");
+        textInterface.waitForEnter("Press ENTER to begin your journey");
     }
 
     // Display player and village status
@@ -166,10 +156,11 @@ public class Logic {
 
     // Process events for the current day
     private void processSpecialEvents() {
-        // Day 1 introduction event
+        // Day 1 introduction event - ADD DELAYS HERE
         if (currentDay == 1) {
-            textInterface.display("The village elder, Thomas, greets you at the gate.");
-            textInterface.display("\"Thank the heavens you've come, doctor. The sickness spreads quickly.\"");
+            textInterface.displayStory("The village elder, Thomas, greets you at the gate.");
+            textInterface.displayDramatic("\"Thank the heavens you've come, doctor. The sickness spreads quickly.\"");
+            textInterface.mediumPause();
 
             textInterface.display("\nWhat do you do?");
             textInterface.display("1: Introduce yourself formally to the village council");
@@ -180,39 +171,43 @@ public class Logic {
 
             switch (choice) {
                 case 1:
-                    textInterface.display(
-                            "\nYou make a formal introduction to the gathered elders. They seem impressed by your knowledge.");
+                    textInterface.displayStory("\nYou make a formal introduction to the gathered elders.");
+                    textInterface.displayNotification("They seem impressed by your knowledge and bearing.");
                     village.improveTrust(10);
                     break;
                 case 2:
-                    textInterface.display(
-                            "\nYou request to be taken to the sick immediately. The villagers appreciate your urgency.");
+                    textInterface.displayStory("\nYou request to be taken to the sick immediately.");
+                    textInterface.displayQuick("The villagers appreciate your urgency...");
                     village.improveTrust(5);
                     player.setCleanliness(player.getCleanliness() - 10);
                     break;
                 case 3:
-                    textInterface.display(
-                            "\nYou take time to understand the village layout. This will help with planning containment.");
+                    textInterface.displayStory("\nYou take time to understand the village layout systematically.");
+                    textInterface.displayQuick("This strategic approach will help with containment planning...");
 
-                    // Survey reveals strategic information not shown in regular status
-                    textInterface.display("\n=== VILLAGE SURVEY INSIGHTS ===");
-                    textInterface.display("You identify key locations and potential risks:");
+                    // Survey reveals strategic information with dramatic timing
+                    textInterface.displayHeader("VILLAGE SURVEY INSIGHTS");
+                    textInterface.displayStory("You identify key locations and potential risks:");
 
-                    // Give tactical intelligence
+                    // Give tactical intelligence with pauses
                     if (village.getCleanliness() < 50) {
-                        textInterface.display(
-                                "- The wells show signs of contamination - water sources need immediate attention.");
+                        textInterface.displayWithDelay(
+                                "- The wells show signs of contamination - water sources need immediate attention.",
+                                1000);
                     }
                     if (village.getEducationLevel() < 40) {
-                        textInterface.display("- Many villagers still believe in harmful superstitions about disease.");
+                        textInterface.displayWithDelay(
+                                "- Many villagers still believe in harmful superstitions about disease.", 1000);
                     }
 
                     // Reveal infection hotspots
-                    textInterface.display("- The market area shows highest infection risk due to crowding.");
-                    textInterface.display("- Noble district has better sanitation but lower trust in outsiders.");
+                    textInterface.displayWithDelay("- The market area shows highest infection risk due to crowding.",
+                            1000);
+                    textInterface.displayWithDelay(
+                            "- Noble district has better sanitation but lower trust in outsiders.", 1000);
 
                     // Give strategic advantage
-                    textInterface.display("\nYour systematic approach impresses the village council.");
+                    textInterface.displayStory("\nYour systematic approach impresses the village council.");
                     village.improveTrust(8);
                     player.setCleanliness(player.getCleanliness() - 5);
                     break;
@@ -221,10 +216,12 @@ public class Logic {
 
         // Day 7 - 1st random encounter event (UPDATED)
         else if (currentDay == 7) {
-            if (random.nextDouble() < 0.7) { // 70% chance of this event
-                textInterface.display("\n=== SPECIAL EVENT ===");
-                textInterface.display("A sick traveler collapses at the village gates.");
-                textInterface.display("Despite their illness, there's something mysterious about them...");
+            if (random.nextDouble() < 0.7) // 70% chance of this event
+            {
+                textInterface.displayHeader("SPECIAL EVENT");
+                textInterface.displayStory("A sick traveler collapses at the village gates.");
+                textInterface.mediumPause();
+                textInterface.displayDramatic("Despite their illness, there's something mysterious about them...");
 
                 textInterface.display("\nWhat will you do?");
                 textInterface.display("1: Help the traveler personally, despite the risk");
@@ -235,36 +232,40 @@ public class Logic {
                 NPC traveler;
                 switch (choice) {
                     case 1: // Help personally
-                        textInterface.display("You help the traveler personally, risking infection.");
+                        textInterface.displayStory("You help the traveler personally, risking infection.");
+                        textInterface.displayQuick("Your compassion overrides your caution...");
                         player.setCleanliness(player.getCleanliness() - 30);
 
-                        // Assign, don't declare
                         traveler = new NPC("Mysterious Traveler", "Unknown Wanderer",
                                 "A sick traveler who collapsed at the gates. Their eyes hold ancient wisdom.", true);
                         keyVillagers.put("traveler", traveler);
                         village.improveTrust(15);
+                        textInterface.displayNotification("The villagers are moved by your selflessness!");
                         break;
 
                     case 2: // Reject
-                        textInterface.display(
+                        textInterface.displayStory(
                                 "You order the gates closed. The village is safer, but the traveler's fate is sealed.");
+                        textInterface.displayWithDelay("Some villagers look away, troubled by this decision.", 1500);
                         village.lowerTrust(10);
                         break;
 
                     case 3: // Examine with protection
-                        textInterface.display("You examine the traveler carefully, using your protective gear.");
+                        textInterface.displayStory("You examine the traveler carefully, using your protective gear.");
                         if (player.useItem("protective_gear", 1)) {
+                            textInterface.displayQuick("Your precautions serve you well...");
                             player.setCleanliness(player.getCleanliness() - 10);
                             village.improveTrust(5);
 
-                            // Assign, don't declare
                             traveler = new NPC("Mysterious Traveler", "Unknown Wanderer",
                                     "A sick traveler who collapsed at the gates. Their eyes hold ancient wisdom.",
                                     true);
                             keyVillagers.put("traveler", traveler);
+                            textInterface.displayNotification("You successfully help while staying protected!");
                         } else {
-                            textInterface
-                                    .display("You don't have protective gear! You're forced to keep your distance.");
+                            textInterface.displayDramatic(
+                                    "You don't have protective gear! You're forced to keep your distance.");
+                            textInterface.displayStory("The traveler's fate hangs in the balance...");
                             village.lowerTrust(5);
                         }
                         break;
@@ -276,12 +277,14 @@ public class Logic {
                 if (keyVillagers.containsKey("traveler")) {
                     NPC traveler = keyVillagers.get("traveler");
 
-                    textInterface.display("\n=== TRAVELER RECOVERY EVENT ===");
+                    textInterface.displayHeader("TRAVELER RECOVERY EVENT");
 
                     if (!traveler.isSick()) {
                         // Traveler has recovered - TRANSFORM them into SpecialNPC
-                        textInterface.display("The mysterious traveler approaches you, now fully recovered.");
-                        textInterface.display("\"Doctor, I owe you my life. Let me tell you who I really am...\"");
+                        textInterface.displayStory("The mysterious traveler approaches you, now fully recovered.");
+                        textInterface.mediumPause();
+                        textInterface
+                                .displayDramatic("\"Doctor, I owe you my life. Let me tell you who I really am...\"");
 
                         // Create new SpecialNPC with revealed identity
                         SpecialNPC specialTraveler = transformTravelerToSpecial(traveler);
@@ -289,34 +292,40 @@ public class Logic {
                         // Replace the regular NPC with SpecialNPC
                         keyVillagers.put("traveler", specialTraveler);
 
-                        textInterface.display(
+                        textInterface.shortPause();
+                        textInterface.displayNotification(
                                 "You can now speak with " + specialTraveler.getName() + " for special assistance!");
 
                     } else {
                         // Still sick - offer intensive treatment
-                        textInterface.display("The traveler remains gravely ill after a week.");
+                        textInterface.displayStory("The traveler remains gravely ill after a week.");
+                        textInterface.shortPause();
                         boolean intensiveTreatment = textInterface.askYesNo("Spend extra effort treating them today?");
 
                         if (intensiveTreatment) {
+                            textInterface.displayStory("You focus all your medical knowledge on saving them...");
+
                             if (player.hasItem("herbs")) {
                                 player.useItem("herbs", 2);
                                 player.setEnergy(player.getEnergy() - 20);
 
                                 if (random.nextDouble() < 0.8) { // 80% success with herbs
                                     traveler.recover();
-                                    textInterface
-                                            .display("Your intensive treatment works! The traveler begins to recover!");
+                                    textInterface.displayDramatic(
+                                            "Your intensive treatment works! The traveler begins to recover!");
                                     village.improveTrust(10);
                                 } else {
-                                    textInterface.display("Despite your best efforts, they remain critical.");
+                                    textInterface.displayWithDelay("Despite your best efforts, they remain critical.",
+                                            1500);
                                 }
                             } else {
                                 player.setEnergy(player.getEnergy() - 25);
                                 if (random.nextDouble() < 0.4) { // 40% success without herbs
                                     traveler.recover();
-                                    textInterface.display("Through determination alone, you help them recover!");
+                                    textInterface
+                                            .displayDramatic("Through determination alone, you help them recover!");
                                 } else {
-                                    textInterface.display("Without proper medicine, your options are limited.");
+                                    textInterface.displayStory("Without proper medicine, your options are limited.");
                                 }
                             }
                         }
@@ -324,14 +333,18 @@ public class Logic {
                 }
             }
 
-            // Special event on May 20 (today's date)
+            // Special event on May 20 - ENHANCE WITH DELAYS
             else if (currentDay == 20) {
-                textInterface.display("\n=== SPECIAL EVENT ===");
-                textInterface
-                        .display("You notice today's date is May 20th, a date that feels particularly significant.");
-                textInterface
-                        .display("A strange sense of clarity comes over you, as if unseen forces guide your hand.");
+                textInterface.displayHeader("SPECIAL EVENT");
+                textInterface.displayStory(
+                        "You notice today's date is May 20th, a date that feels particularly significant.");
+                textInterface.mediumPause();
+                textInterface.displayDramatic(
+                        "A strange sense of clarity comes over you, as if unseen forces guide your hand.");
+                textInterface.displayWithDelay("Ancient knowledge seems to flow through your fingertips...", 1500);
                 player.increaseDoctorSkill(5); // Bonus skill points
+                textInterface
+                        .displayNotification("Your doctor skill has increased by 5 points through divine inspiration!");
             }
         }
     }
@@ -350,12 +363,15 @@ public class Logic {
                         "A learned doctor from the King's court, traveling in disguise.", false,
                         "Can teach advanced royal medical techniques");
 
-                textInterface.display("\"I am Marcus Aurelius, physician to the King's court.\"");
-                textInterface.display("\"I was studying plague patterns in rural areas when I fell ill.\"");
+                textInterface.displayDramatic("\"I am Marcus Aurelius, physician to the King's court.\"");
+                textInterface.displayWithDelay("\"I was studying plague patterns in rural areas when I fell ill.\"",
+                        1200);
+                textInterface.displayStory("\"Your compassionate care has earned you a powerful ally.\"");
 
                 // Immediate reward for helping
                 player.increaseDoctorSkill(3);
                 village.improveTrust(15);
+                textInterface.displayNotification("He teaches you advanced royal techniques!");
                 break;
 
             case "Traveling Scholar":
@@ -363,12 +379,14 @@ public class Logic {
                         "A scholar studying disease patterns across different regions.", false,
                         "Can provide valuable research and education");
 
-                textInterface.display("\"I am Brother Benedict from the university.\"");
-                textInterface.display("\"I've been documenting plague responses across the realm.\"");
+                textInterface.displayDramatic("\"I am Brother Benedict from the university.\"");
+                textInterface.displayWithDelay("\"I've been documenting plague responses across the realm.\"", 1200);
+                textInterface.displayStory("\"Your methods align with the latest scholarly research.\"");
 
                 // Immediate reward
                 village.improveEducation(10);
                 village.improveTrust(10);
+                textInterface.displayNotification("He shares valuable research that improves village knowledge!");
                 break;
 
             case "Merchant Prince":
@@ -376,13 +394,15 @@ public class Logic {
                         "A wealthy trader with connections across the continent.", false,
                         "Can provide rare supplies and trade connections");
 
-                textInterface.display("\"I am Lady Vivienne, head of the Northern Trading Guild.\"");
-                textInterface.display("\"Your care has earned you a powerful ally in commerce.\"");
+                textInterface.displayDramatic("\"I am Lady Vivienne, head of the Northern Trading Guild.\"");
+                textInterface.displayWithDelay("\"Your care has earned you a powerful ally in commerce.\"", 1200);
+                textInterface.displayStory("\"I can arrange for medical supplies to reach this village.\"");
 
                 // Immediate reward
                 player.addItem("rare_supplies", 3);
                 player.addItem("coins", 30);
                 village.improveTrust(8);
+                textInterface.displayNotification("She provides valuable supplies and trade connections!");
                 break;
 
             default:
@@ -417,13 +437,14 @@ public class Logic {
             textInterface.display("5: Educate villagers");
             textInterface.display("6: Speak with a villager");
             textInterface.display("7: End day early");
+            textInterface.display("8: View inventory");
 
             // Only show advanced medicine option if player has it
             boolean hasAdvancedMedicine = player.hasItem("advanced_medicine");
             if (hasAdvancedMedicine) {
-                textInterface.display("8: Use advanced medicine");
+                textInterface.display("9: Use advanced medicine");
             }
-            int maxChoice = hasAdvancedMedicine ? 8 : 7;
+            int maxChoice = hasAdvancedMedicine ? 9 : 8;
             int choice = textInterface.getChoice("Choose an action", 1, maxChoice);
 
             switch (choice) {
@@ -433,25 +454,34 @@ public class Logic {
                     break;
 
                 case 2: // Rest
-                    textInterface.display("You spend time resting and recovering your strength.");
+                    textInterface.displayStory("You spend time resting and recovering your strength.");
+                    textInterface.displayQuick("You feel your energy slowly returning...");
                     player.rest();
+                    textInterface.displayNotification("Your energy and health have improved!");
                     actionsRemaining--;
                     break;
 
                 case 3: // Clean
-                    textInterface.display("You clean yourself thoroughly.");
-                    player.clean();
-                    textInterface.display("Your cleanliness is now: " + player.getCleanliness());
+                    if (player.hasItem("soap")) {
+                        player.clean();
+                        textInterface.displayStory("You wash yourself with soap, feeling refreshed.");
+                    } else {
+                        player.clean();
+                        textInterface.displayStory("You clean yourself with water, but it isn't as effective.");
+                    }
+                    textInterface.displayQuick("The grime and corruption wash away...");
+                    textInterface.displayNotification("Your cleanliness is now: " + player.getCleanliness());
                     actionsRemaining--;
                     break;
 
                 case 4: // Gather herbs
-                    textInterface.display("You venture out to gather medicinal herbs.");
+                    textInterface
+                            .displayStory("You venture out to gather medicinal herbs in the surrounding countryside.");
+                    textInterface.displayQuick("You search carefully among the plants...");
                     int herbsFound = 1 + random.nextInt(3); // 1-3 herbs
                     player.addItem("herbs", herbsFound);
                     player.setEnergy(player.getEnergy() - 20);
-                    textInterface.display("You found " + herbsFound + " herbs for your medicines!");
-                    
+                    textInterface.displayNotification("You found " + herbsFound + " herbs for your medicines!");
 
                     updateQuestProgress("doctor_quest", herbsFound);
                     actionsRemaining--;
@@ -499,11 +529,57 @@ public class Logic {
                     textInterface.display("You decide to end your day early.");
                     actionsRemaining = 0;
                     break;
-                case 8: // Use advanced medicine (only available if player has it)
-                    if (player.hasItem("advanced_medicine")) {
-                        player.useAdvancedMedicine();
+                case 8:
+                    textInterface.displayHeader("YOUR INVENTORY");
+
+                    // Display current inventory
+                    Map<String, Integer> inventory = player.getInventory();
+                    if (inventory.isEmpty()) {
+                        textInterface.displayStory("Your medical bag is empty.");
                     } else {
-                        textInterface.display("You don't have any advanced medicine.");
+                        textInterface.displayStory("Contents of your medical bag:");
+                        for (Map.Entry<String, Integer> item : inventory.entrySet()) {
+                            textInterface.display("- " + item.getKey() + ": " + item.getValue());
+                        }
+                    }
+                case 9: // Use advanced medicine (only available if player has it)
+                    if (player.hasItem("advanced_medicine")) {
+                        textInterface.displayHeader("ADVANCED MEDICINE USAGE");
+                        textInterface.displayStory("You examine your precious advanced medicine carefully.");
+
+                        textInterface.display("\nHow would you like to use it?");
+                        textInterface.display("1: Use on yourself to restore health");
+                        textInterface.display("2: Use while treating patients for maximum effect");
+                        textInterface.display("3: Save it for later");
+
+                        int medicineChoice = textInterface.getChoice("Choose how to use advanced medicine", 1, 3);
+
+                        switch (medicineChoice) {
+                            case 1: // Use on self
+                                textInterface.displayStory("You carefully apply the advanced medicine to yourself.");
+                                player.useItem("advanced_medicine", 1);
+                                player.setHealth(Math.min(100, player.getHealth() + 40));
+                                player.setCleanliness(Math.min(100, player.getCleanliness() + 20));
+                                textInterface
+                                        .displayDramatic("You feel the powerful medicine coursing through your body!");
+                                textInterface.displayNotification("Health +40, Cleanliness +20");
+                                break;
+
+                            case 2: // Use while treating
+                                textInterface.displayStory(
+                                        "You decide to use the advanced medicine while treating patients.");
+                                treatPatients(); // This will ask about advanced medicine usage
+                                break;
+
+                            case 3: // Save it
+                                textInterface.displayStory(
+                                        "You decide to save the advanced medicine for a more critical moment.");
+                                actionsRemaining++; // Don't consume action if not used
+                                break;
+                        }
+                    } else {
+                        textInterface.displayStory("You don't have any advanced medicine.");
+                        actionsRemaining++; // Don't consume action
                     }
                     actionsRemaining--;
                     break;
@@ -635,71 +711,165 @@ public class Logic {
 
     // Helper method for treating patients
     private void treatPatients() {
-        textInterface.display("You spend your day treating the sick in their homes.");
-        
+        textInterface.displayStory("You spend your day treating the sick in their homes.");
+        textInterface.mediumPause();
+
         // Check if player has protective gear before asking
         boolean hasProtection = player.hasItem("protective_gear");
         boolean useProtection = false;
-        
+
         if (hasProtection) {
             useProtection = textInterface.askYesNo("Use protective gear?");
             if (useProtection) {
-                textInterface.display("You put on protective gear before treating patients.");
+                textInterface.displayStory("You put on protective gear before treating patients.");
             } else {
-                textInterface.display("You decide not to use protective gear.");
+                textInterface.displayStory("You decide not to use protective gear.");
             }
         } else {
-            textInterface.display("You don't have protective gear, so you treat patients without protection.");
+            textInterface.displayStory("You don't have protective gear, so you treat patients without protection.");
             useProtection = false;
         }
-        
-        // Apply effects
-        player.treatPatient(useProtection);
 
-        // Calculate treatment effectiveness
-        double baseEffectiveness = 0.03 + (player.getDoctorSkill() / 200.0);
-        int potentialRecoveries = (int) (village.getInfectedCount() * baseEffectiveness);
+        // Check for advanced medicine usage
+        boolean useAdvancedMedicine = false;
+        if (player.hasItem("advanced_medicine")) {
+            textInterface.displayDramatic("\nYou notice you have advanced medicine in your kit...");
+            useAdvancedMedicine = textInterface.askYesNo("Use advanced medicine on the most critical patients?");
 
-        // Add skill check - low skill means potential failure
-        if (player.getDoctorSkill() < 15 && random.nextDouble() < 0.4) {
-            textInterface.display("Your inexperience shows. Some treatments may have done more harm than good.");
-            potentialRecoveries = Math.max(0, potentialRecoveries - 2);
+            if (useAdvancedMedicine) {
+                textInterface
+                        .displayStory("You decide to use your precious advanced medicine on the most severe cases.");
+                player.useItem("advanced_medicine", 1);
+                textInterface.displayQuick("You carefully prepare the rare medicine...");
+            } else {
+                textInterface.displayStory("You save the advanced medicine for another time.");
+            }
         }
 
+        // Apply effects based on choices
+        player.treatPatient(useProtection);
+
+        // Calculate treatment effectiveness with advanced medicine bonus
+        double baseEffectiveness = 0.03 + (player.getDoctorSkill() / 200.0);
+
+        // Advanced medicine significantly boosts effectiveness
+        if (useAdvancedMedicine) {
+            baseEffectiveness += 0.15; // +15% effectiveness boost
+            textInterface.displayDramatic("The advanced medicine shows immediate results!");
+        }
+
+        int potentialRecoveries = (int) (village.getInfectedCount() * baseEffectiveness);
+
+        // Add skill check - low skill means potential failure (but advanced medicine
+        // helps)
+        if (player.getDoctorSkill() < 15 && random.nextDouble() < 0.4) {
+            if (useAdvancedMedicine) {
+                textInterface.displayStory("Your inexperience shows, but the advanced medicine compensates!");
+                potentialRecoveries = Math.max(0, potentialRecoveries - 1); // Less penalty with advanced medicine
+            } else {
+                textInterface
+                        .displayStory("Your inexperience shows. Some treatments may have done more harm than good.");
+                potentialRecoveries = Math.max(0, potentialRecoveries - 2);
+            }
+        }
+
+        // Random variation
         potentialRecoveries = Math.max(0, potentialRecoveries + random.nextInt(2) - 1);
 
+        // Advanced medicine can save additional patients
+        if (useAdvancedMedicine && random.nextDouble() < 0.6) { // 60% chance
+            potentialRecoveries += 1 + random.nextInt(2); // 1-2 extra recoveries
+            textInterface.displayDramatic("The advanced medicine works miracles on the most critical cases!");
+        }
+
+        // Apply results with enhanced feedback
         if (potentialRecoveries > 0) {
-            textInterface.display("You helped " + potentialRecoveries + " patients on their way to recovery!");
+            textInterface.displayStory("You work tirelessly through the day...");
+
+            if (useAdvancedMedicine) {
+                textInterface.displayDramatic(
+                        "The combination of your skill and advanced medicine proves highly effective!");
+                textInterface.displayNotification(
+                        "You helped " + potentialRecoveries + " patients recover, including some critical cases!");
+
+                // Advanced medicine provides additional benefits
+                village.improveTrust(4); // Extra trust for using precious resources
+                player.increaseDoctorSkill(2); // Learn from using advanced techniques
+
+            } else {
+                textInterface.displayNotification(
+                        "You helped " + potentialRecoveries + " patients on their way to recovery!");
+                village.improveTrust(2);
+            }
+
             for (int i = 0; i < potentialRecoveries && village.getInfectedCount() > 0; i++) {
                 village.recoverVillager();
             }
-            village.improveTrust(2);
 
             // Progress lord quest if treating wealthy families
-            if (random.nextDouble() < 0.3) { // 30% chance of treating noble family
-                textInterface.display("Among your patients today was a member of a noble family.");
+            if (random.nextDouble() < 0.3) // 30% chance of treating noble family
+            {
+                textInterface.displayQuick("Among your patients today was a member of a noble family.");
                 updateQuestProgress("lord_quest", 1);
             }
-            
+
+            // Advanced medicine increases chance of treating important families
+            if (useAdvancedMedicine && random.nextDouble() < 0.4) { // 40% chance with advanced medicine
+                textInterface.displayQuick("Your use of advanced medicine impressed a wealthy merchant family.");
+                updateQuestProgress("lord_quest", 1);
+            }
+
             // Progress merchant prince quest if treating merchant families
-            if (activeQuests.contains("traveler_quest") && 
-                keyVillagers.containsKey("traveler") && 
-                keyVillagers.get("traveler") instanceof SpecialNPC) {
+            if (activeQuests.contains("traveler_quest") &&
+                    keyVillagers.containsKey("traveler") &&
+                    keyVillagers.get("traveler") instanceof SpecialNPC) {
                 SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-                if (traveler.getRole().equals("Merchant Prince") && random.nextDouble() < 0.2) { // 20% chance
-                    textInterface.display("You treated a merchant family, furthering Lady Vivienne's trust-building goal.");
-                    updateQuestProgress("traveler_quest", 1);
+                if (traveler.getRole().equals("Merchant Prince")) {
+                    double merchantChance = useAdvancedMedicine ? 0.4 : 0.2; // Double chance with advanced medicine
+                    if (random.nextDouble() < merchantChance) {
+                        textInterface.displayQuick(
+                                "You treated a merchant family, furthering Lady Vivienne's trust-building goal.");
+                        updateQuestProgress("traveler_quest", 1);
+                    }
                 }
             }
+
         } else {
-            textInterface.display("Your treatments didn't seem very effective today.");
-            village.lowerTrust(2);
+            // Treatment was ineffective
+            textInterface.displayStory("Your treatments didn't seem very effective today.");
+
+            if (useAdvancedMedicine) {
+                textInterface.displayDramatic("Even the advanced medicine couldn't help today's patients...");
+                textInterface.displayStory(
+                        "Perhaps the cases were too far advanced, or the medicine was applied incorrectly.");
+                village.lowerTrust(1); // Less trust loss since you tried your best
+            } else {
+                village.lowerTrust(2);
+            }
+
+            // Apply cleanliness effects
             if (hasProtection && useProtection) {
-                textInterface.display("You used protective gear, but it didn't help much.");
+                textInterface.displayStory("You used protective gear, but it didn't help much.");
                 player.setCleanliness(player.getCleanliness() - 5);
             } else {
-                textInterface.display("You treated patients without protection, risking your own health.");
+                textInterface.displayStory("You treated patients without protection, risking your own health.");
                 player.setCleanliness(player.getCleanliness() - 15);
+            }
+        }
+
+        // Special narrative for using advanced medicine
+        if (useAdvancedMedicine) {
+            textInterface.displayStory("\nThe villagers watch in awe as you apply the sophisticated medicine.");
+            textInterface.displayQuick("Word spreads quickly about your access to rare treatments.");
+
+            // Chance of attracting attention from special NPCs
+            if (random.nextDouble() < 0.3) { // 30% chance
+                textInterface.displayDramatic(
+                        "Your use of advanced medicine catches the attention of influential villagers!");
+                if (keyVillagers.containsKey("lord")) {
+                    keyVillagers.get("lord").improveRelationship(5);
+                    textInterface.displayQuick("Lord Harwick takes note of your sophisticated methods.");
+                }
             }
         }
     }
@@ -739,315 +909,395 @@ public class Logic {
             SpecialNPC npc = (SpecialNPC) keyVillagers.get(npcKey);
             npc.completeQuest();
 
-            textInterface.display("\n=== QUEST COMPLETED ===");
-            textInterface.display("You completed " + npc.getName() + "'s quest!");
+            textInterface.displayHeader("QUEST COMPLETED");
+            textInterface.displayDramatic("You completed " + npc.getName() + "'s quest!");
 
-            // Add rewards
+            // Add rewards with dramatic pauses
             if (npcKey.equals("doctor")) {
                 player.increaseDoctorSkill(3);
                 player.addItem("advanced_medicine", 2);
-                textInterface.display("Doctor Elias teaches you advanced techniques and gives you special medicine!");
-                textInterface.display("Your doctor skill increased by 3!");
+                textInterface.displayStory("Doctor Elias nods approvingly...");
+                textInterface.displayNotification("He teaches you advanced techniques and gives you special medicine!");
+                textInterface.displayQuick("Your doctor skill increased by 3!");
             } else if (npcKey.equals("lord")) {
                 village.improveTrust(15);
                 player.addItem("coins", 20);
                 player.addItem("noble_seal", 1);
-                textInterface.display("Lord Harwick speaks highly of you and rewards you with coins and his seal!");
-                textInterface.display("Village trust increased significantly!");
+                textInterface.displayStory("Lord Harwick's stern expression softens...");
+                textInterface.displayNotification("He speaks highly of you and rewards you with coins and his seal!");
+                textInterface.displayQuick("Village trust increased significantly!");
+            } else if (npcKey.equals("traveler")) {
+                // Add traveler quest rewards here with dramatic effect
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                String role = traveler.getRole();
+
+                textInterface.displayStory(traveler.getName() + " smiles with deep gratitude...");
+
+                if (role.equals("Royal Physician")) {
+                    player.increaseDoctorSkill(5);
+                    player.addItem("royal_medicine", 3);
+                    player.addItem("king_letter", 1);
+                    textInterface.displayDramatic("\"Take this letter of recommendation to the King!\"");
+                    textInterface.displayNotification("Marcus Aurelius gives you royal medicine and a king's letter!");
+                } else if (role.equals("Traveling Scholar")) {
+                    village.improveEducation(20);
+                    player.addItem("ancient_texts", 2);
+                    textInterface.displayDramatic("\"My complete research is now yours!\"");
+                    textInterface
+                            .displayNotification("Brother Benedict shares his complete research with the village!");
+                } else if (role.equals("Merchant Prince")) {
+                    player.addItem("rare_supplies", 5);
+                    player.addItem("protective_gear", 3);
+                    village.improveTrust(15);
+                    textInterface.displayDramatic("\"I hereby establish permanent trade routes!\"");
+                    textInterface.displayNotification("Lady Vivienne establishes permanent medical supply routes!");
+                }
             }
         }
     }
 
     // End the current day
     private void endDay() {
+        textInterface.displayWithDelay("\n=== END OF DAY " + currentDay + " ===", 1000);
+
         // Update village status
         village.updateDailyStatus();
 
         // Update player status
         player.updateDailyStatus();
 
-        // Check for critical health
+        // Check for critical health with dramatic effect
         if (player.getHealth() < 20) {
+            textInterface.displayDramatic("\nYour vision blurs as fever takes hold...");
+            textInterface.displayWithDelay("The plague may be claiming another victim.", 2000);
             gameState = "BAD_ENDING";
+            return;
         }
 
         // Check for branching on day 20
         if (currentDay == 20) {
+            textInterface.displayHeader("MIDPOINT ASSESSMENT");
+            textInterface.displayStory("Two weeks have passed since your arrival...");
+            textInterface.mediumPause();
+
             int villageHealth = 100 - (village.getInfectedCount() * 100 / village.getPopulation());
             int trustLevel = village.getTrustLevel();
             int playerHealth = player.getHealth();
 
             if (villageHealth > 60 && trustLevel > 65 && playerHealth > 70) {
                 gameState = "GOOD_PATH";
-                textInterface.display("The village is showing clear signs of recovery!");
+                textInterface.displayDramatic("The village is showing clear signs of recovery!");
+                textInterface.displayStory("Hope begins to replace despair in the villagers' eyes.");
             } else if (villageHealth < 40 || trustLevel < 40 || playerHealth < 50) {
                 gameState = "CRISIS_PATH";
-                textInterface.display("The village is descending into chaos...");
+                textInterface.displayDramatic("The village is descending into chaos...");
+                textInterface.displayStory("Your methods are being questioned by desperate people.");
             } else {
                 gameState = "MIXED_PATH";
-                textInterface.display("The village remains divided about your methods.");
+                textInterface.displayDramatic("The village remains divided about your methods.");
+                textInterface.displayStory("Some trust you, others whisper in the shadows.");
             }
         }
 
-        // Advance to next day
-        textInterface.display("\nDay " + currentDay + " has ended.");
+        // Advance to next day with pause
+        textInterface.displayQuick("Day " + currentDay + " has ended.");
+        textInterface.displayStory("You retire to your quarters, planning tomorrow's efforts...");
         currentDay++;
     }
 
     // Display game ending
     private void displayEnding() {
-        textInterface.display("\n===============================");
-        textInterface.display("       THE END");
-        textInterface.display("===============================");
+        textInterface.displayHeader("THE END");
+        textInterface.mediumPause();
 
         switch (gameState) {
             case "GOOD_PATH":
-                textInterface.display("You successfully led the village to recovery!");
-                textInterface.display("The plague has been contained, with " + village.getRecoveredCount() +
+                textInterface.displayDramatic("You successfully led the village to recovery!");
+                textInterface.displayStory("The plague has been contained, with " + village.getRecoveredCount() +
                         " villagers recovered and " + village.getDeathCount() + " lost.");
-                textInterface.display("Your methods will be remembered for generations to come.");
+                textInterface.displayNotification("Your methods will be remembered for generations to come.");
                 break;
 
             case "MIXED_PATH":
-                textInterface.display("The village survived, though divisions remain.");
-                textInterface
-                        .display("Some villagers still cling to old methods, while others embrace your teachings.");
-                textInterface.display("The death toll stands at " + village.getDeathCount() +
+                textInterface.displayDramatic("The village survived, though divisions remain.");
+                textInterface.displayStory(
+                        "Some villagers still cling to old methods, while others embrace your teachings.");
+                textInterface.displayQuick("The death toll stands at " + village.getDeathCount() +
                         ", with " + village.getRecoveredCount() + " recovered.");
                 break;
 
             case "CRISIS_PATH":
-                textInterface.display("The plague overwhelmed the village despite your efforts.");
-                textInterface.display("With " + village.getDeathCount() + " dead and the social order collapsed,");
-                textInterface
-                        .display("few remain to carry on. Your methods were sound, but fear and superstition won out.");
+                textInterface.displayDramatic("The plague overwhelmed the village despite your efforts.");
+                textInterface.displayStory("With " + village.getDeathCount() + " dead and the social order collapsed,");
+                textInterface.displayWithDelay(
+                        "few remain to carry on. Your methods were sound, but fear and superstition won out.", 1500);
                 break;
 
             case "BAD_ENDING":
-                textInterface.display("You succumbed to the plague, unable to complete your mission.");
-                textInterface.display("Without your guidance, the village descends into panic and chaos.");
-                textInterface.display("Perhaps your notes will help the next plague doctor who comes to Alderbrook.");
+                textInterface.displayDramatic("You succumbed to the plague, unable to complete your mission.");
+                textInterface.displayStory("Without your guidance, the village descends into panic and chaos.");
+                textInterface.displayWithDelay(
+                        "Perhaps your notes will help the next plague doctor who comes to Alderbrook.", 2000);
                 break;
         }
     }
 
     private void educateAboutHygiene() {
-        textInterface.display("\n=== HYGIENE AND CLEANLINESS EDUCATION ===");
-        textInterface.display("You gather the villagers in the town square to teach about personal cleanliness.");
+        textInterface.displayHeader("HYGIENE AND CLEANLINESS EDUCATION");
+        textInterface.displayStory("You gather the villagers in the town square to teach about personal cleanliness.");
+        textInterface.mediumPause();
 
-        textInterface.display("\n\"Listen carefully,\" you begin, adjusting your plague mask.");
-        textInterface.display("\"The first defense against the pestilence is cleanliness of body and home.\"");
+        textInterface.displayDramatic("\"Listen carefully,\" you begin, adjusting your plague mask.");
+        textInterface.displayStory("\"The first defense against the pestilence is cleanliness of body and home.\"");
 
-        textInterface.display("\n=== KEY LESSONS YOU TEACH ===");
-        textInterface.display("• HAND WASHING: \"Wash your hands frequently with soap and clean water,");
-        textInterface.display("  especially before eating and after touching sick persons.\"");
-        textInterface.display("• BATHING: \"Bathe regularly to remove corrupt humors from the skin.\"");
-        textInterface
-                .display("• CLEAN CLOTHING: \"Change and wash your garments often - dirty cloth harbors disease.\"");
-        textInterface.display("• HOME SANITATION: \"Keep your homes clean, dispose of waste properly,");
-        textInterface.display("  and ensure good air circulation.\"");
+        textInterface.displayHeader("KEY LESSONS YOU TEACH");
+        textInterface.displayWithDelay("• HAND WASHING: \"Wash your hands frequently with soap and clean water,", 800);
+        textInterface.displayWithDelay("  especially before eating and after touching sick persons.\"", 800);
+        textInterface.displayWithDelay("• BATHING: \"Bathe regularly to remove corrupt humors from the skin.\"", 800);
+        textInterface.displayWithDelay(
+                "• CLEAN CLOTHING: \"Change and wash your garments often - dirty cloth harbors disease.\"", 800);
+        textInterface.displayWithDelay("• HOME SANITATION: \"Keep your homes clean, dispose of waste properly,", 800);
+        textInterface.displayWithDelay("  and ensure good air circulation.\"", 800);
 
-        // Show villager reactions based on education level
+        // Show villager reactions based on education level WITH DELAYS
         if (village.getEducationLevel() < 30) {
-            textInterface.display("\nMany villagers look skeptical. Some mutter about 'foreign ideas.'");
-            textInterface
-                    .display("An elder speaks up: \"Our grandparents never bathed so much and lived long lives!\"");
+            textInterface.displayStory("\nMany villagers look skeptical. Some mutter about 'foreign ideas.'");
+            textInterface.displayDramatic(
+                    "An elder speaks up: \"Our grandparents never bathed so much and lived long lives!\"");
             village.improveEducation(3);
             village.improveTrust(1);
         } else if (village.getEducationLevel() < 60) {
-            textInterface.display("\nSome villagers nod thoughtfully, while others still seem uncertain.");
-            textInterface.display("A young mother asks: \"How often should we wash our children, doctor?\"");
+            textInterface.displayStory("\nSome villagers nod thoughtfully, while others still seem uncertain.");
+            textInterface.displayQuick("A young mother asks: \"How often should we wash our children, doctor?\"");
             village.improveEducation(5);
             village.improveTrust(3);
         } else {
-            textInterface.display("\nThe villagers listen attentively and ask intelligent questions.");
-            textInterface.display("Several people volunteer to help spread these practices to their families.");
+            textInterface.displayStory("\nThe villagers listen attentively and ask intelligent questions.");
+            textInterface
+                    .displayNotification("Several people volunteer to help spread these practices to their families.");
             village.improveEducation(7);
             village.improveTrust(4);
             village.improveCleanliness(5);
         }
 
-        textInterface.display("\nYou see some villagers immediately checking their hands and clothes.");
-        textInterface.display("Your lessons about cleanliness are slowly taking root in the community.");
+        textInterface.displayQuick("\nYou see some villagers immediately checking their hands and clothes.");
+        textInterface.displayStory("Your lessons about cleanliness are slowly taking root in the community.");
     }
 
     private void educateAboutTransmission() {
-        textInterface.display("\n=== DISEASE TRANSMISSION EDUCATION ===");
-        textInterface.display("You explain how the plague spreads from person to person.");
+        textInterface.displayHeader("DISEASE TRANSMISSION EDUCATION");
+        textInterface.displayStory("You explain how the plague spreads from person to person.");
+        textInterface.mediumPause();
 
-        textInterface.display("\n\"The pestilence travels in ways both seen and unseen,\" you explain.");
-        textInterface.display("\"Understanding its paths helps us block its advance.\"");
+        textInterface.displayDramatic("\"The pestilence travels in ways both seen and unseen,\" you explain.");
+        textInterface.displayStory("\"Understanding its paths helps us block its advance.\"");
 
-        textInterface.display("\n=== TRANSMISSION METHODS YOU EXPLAIN ===");
-        textInterface.display("• CLOSE CONTACT: \"The disease passes through the breath and touch of the sick.\"");
-        textInterface.display("• CONTAMINATED ITEMS: \"Clothing, bedding, and tools of the infected carry danger.\"");
-        textInterface.display("• POOR SANITATION: \"Waste and filth create breeding grounds for corruption.\"");
-        textInterface.display("• CROWDED SPACES: \"Markets and gatherings allow rapid spread between people.\"");
+        textInterface.displayHeader("TRANSMISSION METHODS YOU EXPLAIN");
+        textInterface.displayWithDelay(
+                "• CLOSE CONTACT: \"The disease passes through the breath and touch of the sick.\"", 900);
+        textInterface.displayWithDelay(
+                "• CONTAMINATED ITEMS: \"Clothing, bedding, and tools of the infected carry danger.\"", 900);
+        textInterface.displayWithDelay("• POOR SANITATION: \"Waste and filth create breeding grounds for corruption.\"",
+                900);
+        textInterface.displayWithDelay(
+                "• CROWDED SPACES: \"Markets and gatherings allow rapid spread between people.\"", 900);
 
-        textInterface.display("\n=== PREVENTION STRATEGIES ===");
-        textInterface.display("• DISTANCE: \"Maintain space from the visibly sick - arm's length minimum.\"");
-        textInterface.display("• AVOID CROWDS: \"Limit time in busy markets and large gatherings.\"");
-        textInterface.display("• CLEAN SURFACES: \"Wash items that may have contacted the sick.\"");
-        textInterface.display("• ISOLATE THE ILL: \"Keep sick family members in separate rooms when possible.\"");
+        textInterface.displayHeader("PREVENTION STRATEGIES");
+        textInterface.displayWithDelay("• DISTANCE: \"Maintain space from the visibly sick - arm's length minimum.\"",
+                800);
+        textInterface.displayWithDelay("• AVOID CROWDS: \"Limit time in busy markets and large gatherings.\"", 800);
+        textInterface.displayWithDelay("• CLEAN SURFACES: \"Wash items that may have contacted the sick.\"", 800);
+        textInterface.displayWithDelay(
+                "• ISOLATE THE ILL: \"Keep sick family members in separate rooms when possible.\"", 800);
 
         if (village.getEducationLevel() < 40) {
-            textInterface.display("\nSeveral villagers argue: \"But we must care for our sick family members!\"");
-            textInterface.display("You respond: \"Care for them, yes, but with precautions to protect yourselves.\"");
+            textInterface.displayStory("\nSeveral villagers argue: \"But we must care for our sick family members!\"");
+            textInterface.displayDramatic(
+                    "You respond: \"Care for them, yes, but with precautions to protect yourselves.\"");
             village.improveEducation(4);
             village.improveTrust(2);
         } else {
-            textInterface.display("\nThe villagers grasp these concepts quickly and begin discussing");
-            textInterface.display("how to reorganize their homes and daily routines.");
+            textInterface.displayStory("\nThe villagers grasp these concepts quickly and begin discussing");
+            textInterface.displayQuick("how to reorganize their homes and daily routines.");
             village.improveEducation(6);
             village.improveTrust(3);
             // Slight immediate effect on infection reduction
             if (random.nextDouble() < 0.3) {
-                textInterface.display("Your education immediately helps - some villagers avoid a potential exposure!");
+                textInterface.displayNotification(
+                        "Your education immediately helps - some villagers avoid a potential exposure!");
             }
         }
     }
 
     private void educateAboutHerbalMedicine() {
-        textInterface.display("\n=== HERBAL MEDICINE EDUCATION ===");
+        textInterface.displayHeader("HERBAL MEDICINE EDUCATION");
 
         if (player.hasItem("herbs")) {
-            textInterface.display("You display your collection of herbs to teach their medicinal properties.");
-            textInterface.display("\n\"Nature provides remedies for those who know where to look,\" you explain.");
+            textInterface.displayStory("You display your collection of herbs to teach their medicinal properties.");
+            textInterface
+                    .displayDramatic("\"Nature provides remedies for those who know where to look,\" you explain.");
 
-            textInterface.display("\n=== MEDICINAL HERBS AND THEIR USES ===");
-            textInterface.display("• WILLOW BARK: \"Chew this to reduce fever and ease pain in the joints.\"");
-            textInterface.display("• ELDERBERRY: \"Make tea from these berries to strengthen the body's defenses.\"");
-            textInterface.display("• GARLIC: \"Eat daily to purify the blood and ward off corruption.\"");
-            textInterface.display("• THYME: \"Burn as incense to cleanse the air of pestilent vapors.\"");
-            textInterface.display("• CHAMOMILE: \"Brew tea to calm the spirit and aid restful sleep.\"");
+            textInterface.displayHeader("MEDICINAL HERBS AND THEIR USES");
+            textInterface.displayWithDelay("• WILLOW BARK: \"Chew this to reduce fever and ease pain in the joints.\"",
+                    900);
+            textInterface.displayWithDelay(
+                    "• ELDERBERRY: \"Make tea from these berries to strengthen the body's defenses.\"", 900);
+            textInterface.displayWithDelay("• GARLIC: \"Eat daily to purify the blood and ward off corruption.\"", 900);
+            textInterface.displayWithDelay("• THYME: \"Burn as incense to cleanse the air of pestilent vapors.\"", 900);
+            textInterface.displayWithDelay("• CHAMOMILE: \"Brew tea to calm the spirit and aid restful sleep.\"", 900);
 
-            textInterface.display("\n=== PREPARATION METHODS ===");
-            textInterface.display("• TEAS: \"Steep herbs in hot water for the count of 200 heartbeats.\"");
-            textInterface.display("• POULTICES: \"Crush fresh herbs and apply to wounds or swellings.\"");
-            textInterface.display("• TINCTURES: \"Soak herbs in wine for seven days to extract their essence.\"");
+            textInterface.displayHeader("PREPARATION METHODS");
+            textInterface.displayWithDelay("• TEAS: \"Steep herbs in hot water for the count of 200 heartbeats.\"",
+                    800);
+            textInterface.displayWithDelay("• POULTICES: \"Crush fresh herbs and apply to wounds or swellings.\"", 800);
+            textInterface.displayWithDelay(
+                    "• TINCTURES: \"Soak herbs in wine for seven days to extract their essence.\"", 800);
 
             // Consume some herbs in the demonstration
             player.useItem("herbs", 1);
-            textInterface.display("\nYou use one herb in your demonstration.");
+            textInterface.displayQuick("\nYou use one herb in your demonstration.");
 
             village.improveEducation(6);
             village.improveTrust(4);
-            textInterface.display("Several villagers take notes and promise to search for these herbs.");
+            textInterface.displayNotification("Several villagers take notes and promise to search for these herbs.");
 
         } else {
-            textInterface.display("You realize you don't have herbs to demonstrate with!");
-            textInterface.display("You explain herbal medicine theory, but without examples, it's less effective.");
+            textInterface.displayStory("You realize you don't have herbs to demonstrate with!");
+            textInterface
+                    .displayQuick("You explain herbal medicine theory, but without examples, it's less effective.");
             village.improveEducation(2);
             village.improveTrust(1);
-            textInterface.display("The villagers seem interested but want to see actual herbs next time.");
+            textInterface.displayStory("The villagers seem interested but want to see actual herbs next time.");
         }
     }
 
     private void educateAboutQuarantine() {
-        textInterface.display("\n=== QUARANTINE AND ISOLATION EDUCATION ===");
-        textInterface.display("You explain the importance of separating the sick from the healthy.");
+        textInterface.displayHeader("QUARANTINE AND ISOLATION EDUCATION");
+        textInterface.displayStory("You explain the importance of separating the sick from the healthy.");
+        textInterface.mediumPause();
 
-        textInterface.display("\n\"Sometimes, harsh measures preserve the greater good,\" you begin solemnly.");
-        textInterface.display("\"Separation protects the many, even as we care for the few.\"");
+        textInterface.displayDramatic("\"Sometimes, harsh measures preserve the greater good,\" you begin solemnly.");
+        textInterface.displayStory("\"Separation protects the many, even as we care for the few.\"");
 
-        textInterface.display("\n=== QUARANTINE PRINCIPLES ===");
-        textInterface.display("• EARLY ISOLATION: \"Separate those showing first signs of sickness immediately.\"");
-        textInterface.display("• DEDICATED CAREGIVERS: \"Assign specific people to tend the sick - not everyone.\"");
-        textInterface.display("• BARRIER PROTECTION: \"Use separate dishes, clothing, and bedding for the ill.\"");
-        textInterface.display("• SCHEDULED CARE: \"Visit the sick at set times, not constantly throughout the day.\"");
+        textInterface.displayHeader("QUARANTINE PRINCIPLES");
+        textInterface.displayWithDelay(
+                "• EARLY ISOLATION: \"Separate those showing first signs of sickness immediately.\"", 900);
+        textInterface.displayWithDelay(
+                "• DEDICATED CAREGIVERS: \"Assign specific people to tend the sick - not everyone.\"", 900);
+        textInterface.displayWithDelay(
+                "• BARRIER PROTECTION: \"Use separate dishes, clothing, and bedding for the ill.\"", 900);
+        textInterface.displayWithDelay(
+                "• SCHEDULED CARE: \"Visit the sick at set times, not constantly throughout the day.\"", 900);
 
-        textInterface.display("\n=== COMMUNITY MEASURES ===");
-        textInterface.display("• TRAVEL RESTRICTIONS: \"Limit movement between infected and clean areas.\"");
-        textInterface.display("• MARKET CONTROLS: \"Reduce market days and limit crowd sizes.\"");
-        textInterface.display("• FAMILY PODS: \"Keep families together but separate from other families.\"");
+        textInterface.displayHeader("COMMUNITY MEASURES");
+        textInterface.displayWithDelay("• TRAVEL RESTRICTIONS: \"Limit movement between infected and clean areas.\"",
+                800);
+        textInterface.displayWithDelay("• MARKET CONTROLS: \"Reduce market days and limit crowd sizes.\"", 800);
+        textInterface.displayWithDelay("• FAMILY PODS: \"Keep families together but separate from other families.\"",
+                800);
 
         // Different reactions based on current quarantine status
         if (village.isQuarantineActive()) {
-            textInterface.display("\nSince quarantine is already active, villagers understand its necessity better.");
-            textInterface.display("\"We see the wisdom in these measures,\" an elder acknowledges.");
+            textInterface
+                    .displayStory("\nSince quarantine is already active, villagers understand its necessity better.");
+            textInterface.displayDramatic("\"We see the wisdom in these measures,\" an elder acknowledges.");
             village.improveEducation(5);
             village.improveTrust(3);
         } else {
-            textInterface.display("\nSome villagers look uncomfortable with these strict measures.");
-            textInterface.display("\"You ask us to abandon our sick neighbors?\" someone challenges.");
-            textInterface.display("You explain: \"Not abandon - protect them AND protect yourselves.\"");
+            textInterface.displayStory("\nSome villagers look uncomfortable with these strict measures.");
+            textInterface.displayDramatic("\"You ask us to abandon our sick neighbors?\" someone challenges.");
+            textInterface.displayStory("You explain: \"Not abandon - protect them AND protect yourselves.\"");
             village.improveEducation(4);
 
             if (village.getTrustLevel() > 60) {
                 village.improveTrust(2);
-                textInterface.display("Most villagers trust your judgment, even if they don't like the measures.");
+                textInterface.displayQuick("Most villagers trust your judgment, even if they don't like the measures.");
             } else {
                 village.lowerTrust(1);
-                textInterface.display("Some villagers remain suspicious of your 'foreign' ideas about separation.");
+                textInterface
+                        .displayStory("Some villagers remain suspicious of your 'foreign' ideas about separation.");
             }
         }
     }
 
     private void educateAboutNutrition() {
-        textInterface.display("\n=== NUTRITION AND BODY STRENGTHENING EDUCATION ===");
-        textInterface.display("You teach about foods and practices that strengthen the body against disease.");
+        textInterface.displayHeader("NUTRITION AND BODY STRENGTHENING EDUCATION");
+        textInterface.displayStory("You teach about foods and practices that strengthen the body against disease.");
+        textInterface.mediumPause();
 
-        textInterface.display("\n\"A strong body resists corruption better than a weak one,\" you explain.");
-        textInterface.display("\"What we consume shapes our ability to fight the pestilence.\"");
+        textInterface.displayDramatic("\"A strong body resists corruption better than a weak one,\" you explain.");
+        textInterface.displayStory("\"What we consume shapes our ability to fight the pestilence.\"");
 
-        textInterface.display("\n=== STRENGTHENING FOODS ===");
-        textInterface.display("• FRESH FRUITS: \"Apples and berries purify the blood and provide vital humors.\"");
-        textInterface.display("• VEGETABLES: \"Onions, leeks, and cabbage build resistance to disease.\"");
-        textInterface
-                .display("• CLEAN WATER: \"Pure water flushes corruption from the body - avoid stagnant sources.\"");
-        textInterface
-                .display("• MODERATE MEAT: \"Fresh meat provides strength, but avoid excess during plague times.\"");
-        textInterface.display("• HONEY: \"Nature's medicine - soothes throat and provides clean energy.\"");
+        textInterface.displayHeader("STRENGTHENING FOODS");
+        textInterface.displayWithDelay(
+                "• FRESH FRUITS: \"Apples and berries purify the blood and provide vital humors.\"", 800);
+        textInterface.displayWithDelay("• VEGETABLES: \"Onions, leeks, and cabbage build resistance to disease.\"",
+                800);
+        textInterface.displayWithDelay(
+                "• CLEAN WATER: \"Pure water flushes corruption from the body - avoid stagnant sources.\"", 800);
+        textInterface.displayWithDelay(
+                "• MODERATE MEAT: \"Fresh meat provides strength, but avoid excess during plague times.\"", 800);
+        textInterface.displayWithDelay("• HONEY: \"Nature's medicine - soothes throat and provides clean energy.\"",
+                800);
 
-        textInterface.display("\n=== FOODS TO AVOID ===");
-        textInterface.display("• SPOILED FOODS: \"Rotten meat and moldy bread invite corruption into the body.\"");
-        textInterface.display("• EXCESS ALCOHOL: \"Wine in moderation cleanses, but excess weakens the spirit.\"");
-        textInterface
-                .display("• HEAVY SPICES: \"During plague, simple foods are easier for weakened bodies to process.\"");
+        textInterface.displayHeader("FOODS TO AVOID");
+        textInterface.displayWithDelay(
+                "• SPOILED FOODS: \"Rotten meat and moldy bread invite corruption into the body.\"", 800);
+        textInterface.displayWithDelay(
+                "• EXCESS ALCOHOL: \"Wine in moderation cleanses, but excess weakens the spirit.\"", 800);
+        textInterface.displayWithDelay(
+                "• HEAVY SPICES: \"During plague, simple foods are easier for weakened bodies to process.\"", 800);
 
-        textInterface.display("\n=== HEALTHY PRACTICES ===");
-        textInterface.display("• REGULAR MEALS: \"Eat at consistent times to maintain body rhythm.\"");
-        textInterface.display("• PORTION CONTROL: \"Better to eat less frequently than to overburden the stomach.\"");
-        textInterface.display("• FOOD PREPARATION: \"Cook thoroughly and keep cooking areas clean.\"");
+        textInterface.displayHeader("HEALTHY PRACTICES");
+        textInterface.displayWithDelay("• REGULAR MEALS: \"Eat at consistent times to maintain body rhythm.\"", 800);
+        textInterface.displayWithDelay(
+                "• PORTION CONTROL: \"Better to eat less frequently than to overburden the stomach.\"", 800);
+        textInterface.displayWithDelay("• FOOD PREPARATION: \"Cook thoroughly and keep cooking areas clean.\"", 800);
 
         if (village.getCleanliness() > 50) {
+            textInterface.displayStory(
+                    "\nThe villagers respond well - their clean environment supports your nutrition advice.");
             textInterface
-                    .display("\nThe villagers respond well - their clean environment supports your nutrition advice.");
+                    .displayNotification("Several families volunteer to share healthy recipes with their neighbors.");
             village.improveEducation(6);
             village.improveTrust(4);
-            textInterface.display("Several families volunteer to share healthy recipes with their neighbors.");
         } else {
-            textInterface.display("\nSome villagers point out their limited food options in these hard times.");
-            textInterface.display("\"We eat what we can find, doctor,\" a mother explains sadly.");
+            textInterface.displayStory("\nSome villagers point out their limited food options in these hard times.");
+            textInterface.displayDramatic("\"We eat what we can find, doctor,\" a mother explains sadly.");
+            textInterface
+                    .displayStory("You acknowledge their struggles and focus on making the best of available foods.");
             village.improveEducation(4);
             village.improveTrust(2);
-            textInterface.display("You acknowledge their struggles and focus on making the best of available foods.");
         }
     }
 
     // Display game tutorial
     private void showTutorial() {
-        textInterface.display("\n=== TUTORIAL ===");
+        textInterface.displayHeader("TUTORIAL");
 
-        textInterface.display("Welcome to the Plague Doctor's Day tutorial!");
+        textInterface.displayStory("Welcome to the Plague Doctor's Day tutorial!");
         boolean skipTutorial = textInterface.askYesNo("Would you like to skip the tutorial?");
         if (skipTutorial)
             return;
-        textInterface.display(
-                "In this game, you will play as a plague doctor trying to save a village from the Black Death.");
-        textInterface.display(
-                "You will manage your HEALTH, CLEANLINESS, and ENERGY while treating patients and interacting with villagers.");
-        textInterface.display("Each day, you will have a limited number of actions to perform.");
-        textInterface.display("You can treat patients, gather herbs, educate villagers, and interact with key NPCs.");
-        textInterface.display("Your choices will affect the village's trust in you and your overall success.");
-        textInterface.display(
-                "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.");
-        textInterface.display("You can also accept quests from special NPCs to gain rewards and improve your skills.");
-        textInterface
-                .display("Use your resources wisely and make strategic decisions to lead the village to recovery.");
-        textInterface.display("Good luck, doctor! The fate of Alderbrook village is in your hands.");
-        textInterface.display("Press ENTER to continue to the game...");
-        scanner.nextLine();
 
+        textInterface.displayStory(
+                "In this game, you will play as a plague doctor trying to save a village from the Black Death.");
+        textInterface.displayWithDelay(
+                "You will manage your HEALTH, CLEANLINESS, and ENERGY while treating patients and interacting with villagers.",
+                1800);
+        textInterface.displayWithDelay("Each day, you will have a limited number of actions to perform.", 1500);
+        textInterface.displayWithDelay(
+                "You can treat patients, gather herbs, educate villagers, and interact with key NPCs.", 1800);
+        textInterface.displayWithDelay("Your choices will affect the village's trust in you and your overall success.",
+                1800);
+        textInterface.displayWithDelay(
+                "Remember to keep an eye on your health and cleanliness, as they will impact your effectiveness.",
+                1800);
+        textInterface.displayWithDelay(
+                "You can also accept quests from special NPCs to gain rewards and improve your skills.", 1800);
+        textInterface.displayStory(
+                "Use your resources wisely and make strategic decisions to lead the village to recovery.");
+        textInterface.displayDramatic("Good luck, doctor! The fate of Alderbrook village is in your hands.");
+        textInterface.waitForEnter("Press ENTER to continue to the game");
     }
 }
