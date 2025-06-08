@@ -160,7 +160,7 @@ public class Logic {
 
     // Process events for the current day
     private void processSpecialEvents() {
-        // Day 1 introduction event - ADD DELAYS HERE
+        // Day 1 introduction event
         if (currentDay == 1) {
             textInterface.displayStory("The village elder, Thomas, greets you at the gate.");
             textInterface.displayDramatic("\"Thank the heavens you've come, doctor. The sickness spreads quickly.\"");
@@ -218,7 +218,7 @@ public class Logic {
             }
         }
 
-        // Day 7 - 1st random encounter event (UPDATED)
+        // Day 7 - 1st random encounter event
         else if (currentDay == 7) {
             if (random.nextDouble() < 0.7) // 70% chance of this event
             {
@@ -546,6 +546,7 @@ public class Logic {
                             textInterface.display("- " + item.getKey() + ": " + item.getValue());
                         }
                     }
+                    break;
                 case 9: // Use advanced medicine (only available if player has it)
                     if (player.hasItem("advanced_medicine")) {
                         textInterface.displayHeader("ADVANCED MEDICINE USAGE");
@@ -881,13 +882,13 @@ public class Logic {
     // Update your updateQuestProgress method:
     private void updateQuestProgress(String questKey, int progress) {
         if (activeQuests.contains(questKey)) {
-            int currentProgress = questProgress.getOrDefault(questKey, 0);
-            questProgress.put(questKey, currentProgress + progress);
-
+            questProgress.merge(questKey, progress, Integer::sum);
+            
             // Check if quest is complete
-            if (questKey.equals("doctor_quest") && questProgress.get(questKey) >= 10) {
+            int currentProgress = questProgress.get(questKey);
+            if (questKey.equals("doctor_quest") && currentProgress >= 10) {
                 completeQuest(questKey, "doctor");
-            } else if (questKey.equals("lord_quest") && questProgress.get(questKey) >= 3) {
+            } else if (questKey.equals("lord_quest") && currentProgress >= 3) {
                 completeQuest(questKey, "lord");
             } else if (questKey.equals("traveler_quest")) {
                 // Different completion based on traveler identity
@@ -901,6 +902,35 @@ public class Logic {
                         completeQuest(questKey, "traveler");
                     }
                 }
+            }
+        }
+    }
+
+    // Add helper method for quest completion checks:
+    private void checkQuestCompletion(String questKey) {
+        int progress = questProgress.getOrDefault(questKey, 0);
+        
+        switch (questKey) {
+            case "doctor_quest":
+                if (progress >= 10) completeQuest(questKey, "doctor");
+                break;
+            case "lord_quest":
+                if (progress >= 3) completeQuest(questKey, "lord");
+                break;
+            case "traveler_quest":
+                checkTravelerQuestCompletion(questKey, progress);
+                break;
+        }
+    }
+
+    private void checkTravelerQuestCompletion(String questKey, int progress) {
+        if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
+            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+            String role = traveler.getRole();
+            
+            int requiredProgress = role.equals("Merchant Prince") ? 5 : 3;
+            if (progress >= requiredProgress) {
+                completeQuest(questKey, "traveler");
             }
         }
     }
