@@ -545,7 +545,7 @@ public class Logic {
                             textInterface.display("- " + item.getKey() + ": " + item.getValue());
                         }
                     }
-                    actionsRemaining--;
+                
                     break;
                 case 9: // Use advanced medicine (only available if player has it)
                     if (player.hasItem("advanced_medicine")) {
@@ -690,19 +690,21 @@ public class Logic {
                         String questKey = npcKey + "_quest";
                         if (!activeQuests.contains(questKey)) {
                             activeQuests.add(questKey);
-                            
+
                             // Initialize progress based on current inventory
                             int initialProgress = 0;
                             if (questKey.equals("doctor_quest")) {
                                 // Give credit for herbs already in inventory
                                 initialProgress = player.getItemCount("herbs");
-                                textInterface.displayNotification("You already have " + initialProgress + " herbs that count toward this quest!");
+                                textInterface.displayNotification(
+                                        "You already have " + initialProgress + " herbs that count toward this quest!");
                             } else if (questKey.equals("lord_quest")) {
                                 // For lord quest, start at 0 since it tracks actions, not items
                                 initialProgress = 0;
                             } else if (questKey.equals("traveler_quest")) {
                                 // Different traveler quests might have different starting conditions
-                                if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
+                                if (keyVillagers.containsKey("traveler")
+                                        && keyVillagers.get("traveler") instanceof SpecialNPC) {
                                     SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
                                     String role = traveler.getRole();
                                     if (role.equals("Royal Physician")) {
@@ -712,13 +714,13 @@ public class Logic {
                                     // Other traveler types start at 0 since they track actions
                                 }
                             }
-                            
+
                             questProgress.put(questKey, initialProgress);
                             textInterface.display("You've accepted the quest!");
-                            
+
                             // Check if quest is already complete
                             checkQuestCompletion(questKey, npcKey);
-                            
+
                             textInterface.display("Check your status to track progress.");
                         } else {
                             textInterface.display("You already have this quest.");
@@ -1023,7 +1025,7 @@ public class Logic {
 
     private void checkQuestCompletion(String questKey, String npcKey) {
         int currentProgress = questProgress.getOrDefault(questKey, 0);
-        
+
         if (questKey.equals("doctor_quest") && currentProgress >= 10) {
             textInterface.displayDramatic("You already have enough herbs to complete this quest!");
             boolean completeNow = textInterface.askYesNo("Turn in the quest now?");
@@ -1038,7 +1040,7 @@ public class Logic {
             if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
                 SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
                 String role = traveler.getRole();
-                
+
                 if (role.equals("Royal Physician") && currentProgress >= 3) {
                     textInterface.displayDramatic("You already have the required healing water samples!");
                     boolean completeNow = textInterface.askYesNo("Turn in the quest now?");
@@ -1592,8 +1594,6 @@ public class Logic {
     private void sellItemsToMerchant(NPC merchant) {
         textInterface.displayHeader("SELL ITEMS TO ANNA");
         textInterface.displayStory("Anna examines your items to see what she might buy.");
-
-        Map<String, Integer> inventory = player.getInventory();
         boolean hasItemsToSell = false;
 
         // Items Anna will buy and their prices
