@@ -6,7 +6,7 @@ import java.util.Map;
 public class Player extends Character {
     private int cleanliness;
     private int energy;
-    private Map<String, Integer> inventory; 
+    private Map<String, Integer> inventory;
     private int doctorSkill;
 
     public Player() {
@@ -56,7 +56,7 @@ public class Player extends Character {
 
         // Natural recovery if rested
         if (energy > 70) {
-            health += 3;
+            setHealth(Math.min(getHealth() + 3, 100));
         }
 
         // Natural energy recovery overnight
@@ -104,7 +104,7 @@ public class Player extends Character {
     // Action methods
     public void rest() {
         energy = Math.min(energy + 40, 100);
-        setHealth(getHealth() + 5);
+        setHealth(Math.min(getHealth() + 5, 100));
     }
 
     public void clean() {

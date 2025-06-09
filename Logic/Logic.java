@@ -533,19 +533,8 @@ public class Logic {
                     actionsRemaining = 0;
                     break;
                 case 8:
-                    textInterface.displayHeader("YOUR INVENTORY");
+                    viewInventory();
 
-                    // Display current inventory
-                    Map<String, Integer> inventory = player.getInventory();
-                    if (inventory.isEmpty()) {
-                        textInterface.displayStory("Your medical bag is empty.");
-                    } else {
-                        textInterface.displayStory("Contents of your medical bag:");
-                        for (Map.Entry<String, Integer> item : inventory.entrySet()) {
-                            textInterface.display("- " + item.getKey() + ": " + item.getValue());
-                        }
-                    }
-                
                     break;
                 case 9: // Use advanced medicine (only available if player has it)
                     if (player.hasItem("advanced_medicine")) {
@@ -764,6 +753,22 @@ public class Logic {
             } else {
                 textInterface.display("You have a brief, formal conversation.");
                 npc.improveRelationship(1);
+            }
+        }
+    }
+
+    // View Inventory
+    private void viewInventory() {
+        textInterface.displayHeader("YOUR INVENTORY");
+
+        // Display current inventory
+        Map<String, Integer> inventory = player.getInventory();
+        if (inventory.isEmpty()) {
+            textInterface.displayStory("Your medical bag is empty.");
+        } else {
+            textInterface.displayStory("Contents of your medical bag:");
+            for (Map.Entry<String, Integer> item : inventory.entrySet()) {
+                textInterface.display("- " + item.getKey() + ": " + item.getValue());
             }
         }
     }
@@ -1157,40 +1162,55 @@ public class Logic {
         textInterface.displayWithDelay("• HOME SANITATION: \"Keep your homes clean, dispose of waste properly,", 800);
         textInterface.displayWithDelay("  and ensure good air circulation.\"", 800);
 
-        // Show villager reactions based on education level WITH DELAYS
-        if (village.getEducationLevel() < 30) {
-            textInterface.displayStory("\nMany villagers look skeptical. Some mutter about 'foreign ideas.'");
-            textInterface.displayDramatic(
-                    "An elder speaks up: \"Our grandparents never bathed so much and lived long lives!\"");
-            village.improveEducation(3);
-            village.improveTrust(1);
-        } else if (village.getEducationLevel() < 60) {
-            textInterface.displayStory("\nSome villagers nod thoughtfully, while others still seem uncertain.");
-            textInterface.displayQuick("A young mother asks: \"How often should we wash our children, doctor?\"");
-            village.improveEducation(5);
-            village.improveTrust(3);
-        } else {
-            textInterface.displayStory("\nThe villagers listen attentively and ask intelligent questions.");
-            textInterface
-                    .displayNotification("Several people volunteer to help spread these practices to their families.");
-            village.improveEducation(7);
-            village.improveTrust(4);
-            village.improveCleanliness(5);
-        }
+        // Add quiz section
+        textInterface.displayHeader("\nKNOWLEDGE CHECK");
+        textInterface.display("What are the Key Lessons of Hygiene and Cleanliness?");
+        textInterface.display("1: Hand Washing, Bathing, Sunbathing, Exercising");
+        textInterface.display("2: Hand Washing, Sunbathing, Sleeping, Clean Clothing");
+        textInterface.display("3: Exercising, Bathing, Clean Clothing, Home Sanitation");
+        textInterface.display("4: Hand Washing, Bathing, Clean Clothing, Home Sanitation");
 
-        textInterface.displayQuick("\nYou see some villagers immediately checking their hands and clothes.");
-        textInterface.displayStory("Your lessons about cleanliness are slowly taking root in the community.");
+        int answer = textInterface.getChoice("Choose your answer", 1, 4);
 
-        // Check and update traveler quest progress
-        if (activeQuests.contains("traveler_quest") &&
-                keyVillagers.containsKey("traveler") &&
-                keyVillagers.get("traveler") instanceof SpecialNPC) {
-            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-            if (traveler.getRole().equals("Traveling Scholar")) {
-                updateQuestProgress("traveler_quest", 1);
-                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+        if (answer == 4) { // Correct answer
+            textInterface.displayNotification("Your explanation is clear and accurate!");
+
+            // Show villager reactions based on education level
+            if (village.getEducationLevel() < 30) {
+                textInterface.displayStory("\nMany villagers look skeptical but acknowledge your knowledge.");
+                village.improveEducation(3);
+                village.improveTrust(1);
+            } else if (village.getEducationLevel() < 60) {
+                textInterface.displayStory("\nSome villagers nod thoughtfully, appreciating your expertise.");
+                village.improveEducation(5);
+                village.improveTrust(3);
+            } else {
+                textInterface.displayStory("\nThe villagers listen attentively and ask intelligent questions.");
+                textInterface.displayNotification(
+                        "Several people volunteer to help spread these practices to their families.");
+                village.improveEducation(7);
+                village.improveTrust(4);
+                village.improveCleanliness(5);
             }
+
+            // Check and update traveler quest progress
+            if (activeQuests.contains("traveler_quest") &&
+                    keyVillagers.containsKey("traveler") &&
+                    keyVillagers.get("traveler") instanceof SpecialNPC) {
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                if (traveler.getRole().equals("Traveling Scholar")) {
+                    updateQuestProgress("traveler_quest", 1);
+                    textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+                }
+            }
+
+        } else { // Incorrect answer
+            textInterface.displayDramatic("Your explanation seems confused and uncertain.");
+            textInterface.displayStory("The village does not listen to your education.");
+            textInterface.displayQuick("You've wasted valuable time with incorrect information.");
         }
+
+        textInterface.displayQuick("\nYou conclude your hygiene lesson for the day.");
     }
 
     private void educateAboutTransmission() {
@@ -1219,34 +1239,55 @@ public class Logic {
         textInterface.displayWithDelay(
                 "• ISOLATE THE ILL: \"Keep sick family members in separate rooms when possible.\"", 800);
 
-        if (village.getEducationLevel() < 40) {
-            textInterface.displayStory("\nSeveral villagers argue: \"But we must care for our sick family members!\"");
-            textInterface.displayDramatic(
-                    "You respond: \"Care for them, yes, but with precautions to protect yourselves.\"");
-            village.improveEducation(4);
-            village.improveTrust(2);
-        } else {
-            textInterface.displayStory("\nThe villagers grasp these concepts quickly and begin discussing");
-            textInterface.displayQuick("how to reorganize their homes and daily routines.");
-            village.improveEducation(6);
-            village.improveTrust(3);
-            // Slightly more immediate effect on infection reduction
-            if (random.nextDouble() < 0.4) {
-                textInterface.displayNotification(
-                        "Your education immediately helps - some villagers avoid a potential exposure!");
+        // Add quiz section
+        textInterface.displayHeader("\nKNOWLEDGE CHECK");
+        textInterface.display("What are the main ways the plague spreads?");
+        textInterface.display("1: Through evil spirits, bad dreams, and night air");
+        textInterface.display("2: Through close contact, contaminated items, poor sanitation, and crowds");
+        textInterface.display("3: Through animals, weather changes, and loud noises");
+        textInterface.display("4: Through dancing, singing, and festive gatherings");
+
+        int answer = textInterface.getChoice("Choose your answer", 1, 4);
+
+        if (answer == 2) { // Correct answer
+            textInterface.displayNotification("Your explanation resonates with the villagers!");
+
+            if (village.getEducationLevel() < 40) {
+                textInterface
+                        .displayStory("\nSeveral villagers argue: \"But we must care for our sick family members!\"");
+                textInterface.displayDramatic(
+                        "You respond: \"Care for them, yes, but with precautions to protect yourselves.\"");
+                village.improveEducation(4);
+                village.improveTrust(2);
+            } else {
+                textInterface.displayStory("\nThe villagers grasp these concepts quickly and begin discussing");
+                textInterface.displayQuick("how to reorganize their homes and daily routines.");
+                village.improveEducation(6);
+                village.improveTrust(3);
+                if (random.nextDouble() < 0.4) {
+                    textInterface.displayNotification(
+                            "Your education immediately helps - some villagers avoid a potential exposure!");
+                }
             }
+
+            // Check and update traveler quest progress
+            if (activeQuests.contains("traveler_quest") &&
+                    keyVillagers.containsKey("traveler") &&
+                    keyVillagers.get("traveler") instanceof SpecialNPC) {
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                if (traveler.getRole().equals("Traveling Scholar")) {
+                    updateQuestProgress("traveler_quest", 1);
+                    textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+                }
+            }
+
+        } else { // Incorrect answer
+            textInterface.displayDramatic("Your explanation seems confused and uncertain.");
+            textInterface.displayStory("The villagers whisper among themselves, doubting your knowledge.");
+            textInterface.displayQuick("You've wasted valuable time with incorrect information.");
         }
 
-        // Check and update traveler quest progress
-        if (activeQuests.contains("traveler_quest") &&
-                keyVillagers.containsKey("traveler") &&
-                keyVillagers.get("traveler") instanceof SpecialNPC) {
-            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-            if (traveler.getRole().equals("Traveling Scholar")) {
-                updateQuestProgress("traveler_quest", 1);
-                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
-            }
-        }
+        textInterface.displayQuick("\nYou conclude your lesson on disease transmission.");
     }
 
     private void educateAboutHerbalMedicine() {
@@ -1273,33 +1314,52 @@ public class Logic {
             textInterface.displayWithDelay(
                     "• TINCTURES: \"Soak herbs in wine for seven days to extract their essence.\"", 800);
 
-            // Consume some herbs in the demonstration
-            player.useItem("herbs", 1);
-            textInterface.displayQuick("\nYou use one herb in your demonstration.");
+            // Add quiz section
+            textInterface.displayHeader("\nKNOWLEDGE CHECK");
+            textInterface.display("What is the correct preparation method for herbal tinctures?");
+            textInterface.display("1: Boil herbs in water for 1 hour");
+            textInterface.display("2: Dry herbs in the sun for 3 days");
+            textInterface.display("3: Soak herbs in wine for seven days");
+            textInterface.display("4: Crush herbs into powder immediately");
 
-            village.improveEducation(6);
-            village.improveTrust(4);
-            textInterface.displayNotification("Several villagers take notes and promise to search for these herbs.");
+            int answer = textInterface.getChoice("Choose your answer", 1, 4);
+
+            if (answer == 3) { // Correct answer
+                // Consume herbs in demonstration
+                player.useItem("herbs", 1);
+                textInterface.displayQuick("\nYou use one herb in your demonstration.");
+
+                textInterface.displayNotification("Your explanation is clear and practical!");
+                village.improveEducation(6);
+                village.improveTrust(4);
+                textInterface
+                        .displayNotification("Several villagers take notes and promise to search for these herbs.");
+
+                // Check and update traveler quest progress
+                if (activeQuests.contains("traveler_quest") &&
+                        keyVillagers.containsKey("traveler") &&
+                        keyVillagers.get("traveler") instanceof SpecialNPC) {
+                    SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                    if (traveler.getRole().equals("Traveling Scholar")) {
+                        updateQuestProgress("traveler_quest", 1);
+                        textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+                    }
+                }
+            } else { // Incorrect answer
+                textInterface.displayDramatic("Your explanation about preparation methods seems confused.");
+                textInterface.displayStory("The villagers look doubtful about trying these remedies.");
+                textInterface.displayQuick("You've wasted valuable herbs with incorrect information.");
+                player.useItem("herbs", 1); // Still consume herb despite failure
+            }
 
         } else {
             textInterface.displayStory("You realize you don't have herbs to demonstrate with!");
             textInterface
                     .displayQuick("You explain herbal medicine theory, but without examples, it's less effective.");
-            village.improveEducation(2);
-            village.improveTrust(1);
             textInterface.displayStory("The villagers seem interested but want to see actual herbs next time.");
         }
 
-        // Check and update traveler quest progress
-        if (activeQuests.contains("traveler_quest") &&
-                keyVillagers.containsKey("traveler") &&
-                keyVillagers.get("traveler") instanceof SpecialNPC) {
-            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-            if (traveler.getRole().equals("Traveling Scholar")) {
-                updateQuestProgress("traveler_quest", 1);
-                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
-            }
-        }
+        textInterface.displayQuick("\nYou conclude your herbal medicine lesson for the day.");
     }
 
     private void educateAboutQuarantine() {
@@ -1327,39 +1387,62 @@ public class Logic {
         textInterface.displayWithDelay("• FAMILY PODS: \"Keep families together but separate from other families.\"",
                 800);
 
-        // Different reactions based on current quarantine status
-        if (village.isQuarantineActive()) {
-            textInterface
-                    .displayStory("\nSince quarantine is already active, villagers understand its necessity better.");
-            textInterface.displayDramatic("\"We see the wisdom in these measures,\" an elder acknowledges.");
-            village.improveEducation(5);
-            village.improveTrust(3);
-        } else {
-            textInterface.displayStory("\nSome villagers look uncomfortable with these strict measures.");
-            textInterface.displayDramatic("\"You ask us to abandon our sick neighbors?\" someone challenges.");
-            textInterface.displayStory("You explain: \"Not abandon - protect them AND protect yourselves.\"");
-            village.improveEducation(4);
+        // Add quiz section
+        textInterface.displayHeader("\nKNOWLEDGE CHECK");
+        textInterface.display("What are the key principles of quarantine?");
+        textInterface.display("1: Early isolation, dedicated caregivers, barrier protection, scheduled care");
+        textInterface.display("2: Complete isolation, no visitors, starvation, punishment");
+        textInterface.display("3: Prayer circles, group gatherings, shared meals");
+        textInterface.display("4: Moving sick people to other villages, burning homes, exile");
 
-            if (village.getTrustLevel() > 60) {
-                village.improveTrust(2);
-                textInterface.displayQuick("Most villagers trust your judgment, even if they don't like the measures.");
+        int answer = textInterface.getChoice("Choose your answer", 1, 4);
+
+        if (answer == 1) { // Correct answer
+            textInterface.displayNotification("Your explanation shows wisdom and compassion!");
+
+            // Different reactions based on current quarantine status
+            if (village.isQuarantineActive()) {
+                textInterface.displayStory(
+                        "\nSince quarantine is already active, villagers understand its necessity better.");
+                textInterface.displayDramatic("\"We see the wisdom in these measures,\" an elder acknowledges.");
+                village.improveEducation(5);
+                village.improveTrust(3);
             } else {
-                village.lowerTrust(1);
-                textInterface
-                        .displayStory("Some villagers remain suspicious of your 'foreign' ideas about separation.");
+                textInterface.displayStory("\nSome villagers look uncomfortable with these strict measures.");
+                textInterface.displayDramatic("\"You ask us to abandon our sick neighbors?\" someone challenges.");
+                textInterface.displayStory("You explain: \"Not abandon - protect them AND protect yourselves.\"");
+                village.improveEducation(4);
+
+                if (village.getTrustLevel() > 60) {
+                    village.improveTrust(2);
+                    textInterface
+                            .displayQuick("Most villagers trust your judgment, even if they don't like the measures.");
+                } else {
+                    village.lowerTrust(1);
+                    textInterface
+                            .displayStory("Some villagers remain suspicious of your 'foreign' ideas about separation.");
+                }
             }
+
+            // Check and update traveler quest progress
+            if (activeQuests.contains("traveler_quest") &&
+                    keyVillagers.containsKey("traveler") &&
+                    keyVillagers.get("traveler") instanceof SpecialNPC) {
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                if (traveler.getRole().equals("Traveling Scholar")) {
+                    updateQuestProgress("traveler_quest", 1);
+                    textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+                }
+            }
+
+        } else { // Incorrect answer
+            textInterface.displayDramatic("Your explanation reveals a harsh and misguided approach.");
+            textInterface.displayStory("The villagers recoil from your dangerous misunderstanding.");
+            textInterface.displayQuick("You've damaged their trust with incorrect information.");
+            village.lowerTrust(2); // Extra penalty for wrong quarantine information
         }
 
-        // Check and update traveler quest progress
-        if (activeQuests.contains("traveler_quest") &&
-                keyVillagers.containsKey("traveler") &&
-                keyVillagers.get("traveler") instanceof SpecialNPC) {
-            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-            if (traveler.getRole().equals("Traveling Scholar")) {
-                updateQuestProgress("traveler_quest", 1);
-                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
-            }
-        }
+        textInterface.displayQuick("\nYou conclude your lesson on quarantine measures.");
     }
 
     private void educateAboutNutrition() {
@@ -1396,32 +1479,54 @@ public class Logic {
                 "• PORTION CONTROL: \"Better to eat less frequently than to overburden the stomach.\"", 800);
         textInterface.displayWithDelay("• FOOD PREPARATION: \"Cook thoroughly and keep cooking areas clean.\"", 800);
 
-        if (village.getCleanliness() > 50) {
-            textInterface.displayStory(
-                    "\nThe villagers respond well - their clean environment supports your nutrition advice.");
-            textInterface
-                    .displayNotification("Several families volunteer to share healthy recipes with their neighbors.");
-            village.improveEducation(6);
-            village.improveTrust(4);
-        } else {
-            textInterface.displayStory("\nSome villagers point out their limited food options in these hard times.");
-            textInterface.displayDramatic("\"We eat what we can find, doctor,\" a mother explains sadly.");
-            textInterface
-                    .displayStory("You acknowledge their struggles and focus on making the best of available foods.");
-            village.improveEducation(4);
-            village.improveTrust(2);
+        // Add quiz section
+        textInterface.displayHeader("\nKNOWLEDGE CHECK");
+        textInterface.display("Which foods should be consumed to strengthen the body?");
+        textInterface.display("1: Spoiled meat, heavy spices, excess alcohol");
+        textInterface.display("2: Fresh fruits, vegetables, clean water, moderate meat, honey");
+        textInterface.display("3: Only meat and bread, no water needed");
+        textInterface.display("4: Stagnant water, moldy bread, raw meat");
+
+        int answer = textInterface.getChoice("Choose your answer", 1, 4);
+
+        if (answer == 2) { // Correct answer
+            textInterface.displayNotification("Your explanation is clear and well-received!");
+
+            if (village.getCleanliness() > 50) {
+                textInterface.displayStory(
+                        "\nThe villagers respond well - their clean environment supports your nutrition advice.");
+                textInterface.displayNotification(
+                        "Several families volunteer to share healthy recipes with their neighbors.");
+                village.improveEducation(6);
+                village.improveTrust(4);
+            } else {
+                textInterface
+                        .displayStory("\nSome villagers point out their limited food options in these hard times.");
+                textInterface.displayDramatic("\"We eat what we can find, doctor,\" a mother explains sadly.");
+                textInterface.displayStory(
+                        "You acknowledge their struggles and focus on making the best of available foods.");
+                village.improveEducation(4);
+                village.improveTrust(2);
+            }
+
+            // Check and update traveler quest progress
+            if (activeQuests.contains("traveler_quest") &&
+                    keyVillagers.containsKey("traveler") &&
+                    keyVillagers.get("traveler") instanceof SpecialNPC) {
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                if (traveler.getRole().equals("Traveling Scholar")) {
+                    updateQuestProgress("traveler_quest", 1);
+                    textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+                }
+            }
+
+        } else { // Incorrect answer
+            textInterface.displayDramatic("Your dietary advice seems dangerously misguided.");
+            textInterface.displayStory("The villagers whisper concerns about your understanding of nutrition.");
+            textInterface.displayQuick("You've wasted valuable time with incorrect information.");
         }
 
-        // Check and update traveler quest progress
-        if (activeQuests.contains("traveler_quest") &&
-                keyVillagers.containsKey("traveler") &&
-                keyVillagers.get("traveler") instanceof SpecialNPC) {
-            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-            if (traveler.getRole().equals("Traveling Scholar")) {
-                updateQuestProgress("traveler_quest", 1);
-                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
-            }
-        }
+        textInterface.displayQuick("\nYou conclude your nutrition lesson for the day.");
     }
 
     // Display game tutorial
