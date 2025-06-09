@@ -7,6 +7,8 @@ public class Village {
     private int infectedCount;
     private int recoveredCount;
     private int deathCount;
+    private int playerRecoveries; // NEW: Track player-caused recoveries
+    private int naturalRecoveries; // NEW: Track automatic recoveries
     private int trustLevel;
     private int cleanliness;
     private boolean quarantineActive;
@@ -23,6 +25,8 @@ public class Village {
         this.infectedCount = 25;
         this.recoveredCount = 0;
         this.deathCount = 0;
+        this.playerRecoveries = 0;
+        this.naturalRecoveries = 0;
         this.trustLevel = 30;
         this.cleanliness = 25;
         this.quarantineActive = false;
@@ -33,12 +37,13 @@ public class Village {
     public void updateDailyStatus() {
         // Calculate new infections, recoveries, and deaths
         int newInfections = calculateNewInfections();
-        int newRecoveries = calculateNewRecoveries();
+        int newNaturalRecoveries = calculateNewRecoveries(); // Only natural recoveries
         int deaths = calculateDeaths();
 
-        // Update counts
-        infectedCount = Math.max(0, infectedCount + newInfections - newRecoveries - deaths);
-        recoveredCount += newRecoveries;
+        // Update counts - now accounting for both types of recoveries
+        infectedCount = Math.max(0, infectedCount + newInfections - newNaturalRecoveries - deaths);
+        naturalRecoveries += newNaturalRecoveries;
+        recoveredCount = playerRecoveries + naturalRecoveries; // Total recoveries
         deathCount += deaths;
         population -= deaths;
 
@@ -105,10 +110,12 @@ public class Village {
         return potentialDeaths;
     }
 
+    // Player-induced recovery (called from treatPatients)
     public void recoverVillager() {
         if (infectedCount > 0) {
             infectedCount--;
-            recoveredCount++;
+            playerRecoveries++;
+            recoveredCount = playerRecoveries + naturalRecoveries; // Update total
         }
     }
 
@@ -164,5 +171,14 @@ public class Village {
 
     public int getEducationLevel() {
         return educationLevel;
+    }
+
+    // NEW: Getters for detailed statistics
+    public int getPlayerRecoveries() {
+        return playerRecoveries;
+    }
+
+    public int getNaturalRecoveries() {
+        return naturalRecoveries;
     }
 }

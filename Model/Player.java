@@ -60,7 +60,7 @@ public class Player extends Character {
         }
 
         // Natural energy recovery overnight
-        energy = Math.min(energy + 30, 100);
+        energy = Math.min(energy + 20, 100);
 
         // Ensure cleanliness stays within bounds
         cleanliness = Math.max(0, Math.min(100, cleanliness));

@@ -695,6 +695,32 @@ public class Logic {
                     }
                     break;
             }
+        }
+        // NEW: Special case for merchant Anna
+        else if (npcKey.equals("merchant")) {
+            textInterface.display("\nHow would you like to interact with Anna?");
+            textInterface.display("1: General conversation");
+            textInterface.display("2: Browse her wares (trading)");
+
+            int choice = textInterface.getChoice("Choose an interaction", 1, 2);
+
+            switch (choice) {
+                case 1:
+                    // Regular conversation
+                    if (npc.getRelationshipLevel() > 60) {
+                        textInterface.display("Anna shares some useful trading gossip with you.");
+                        textInterface.displayQuick("\"The supply routes are getting dangerous, doctor.\"");
+                        npc.improveRelationship(2);
+                    } else {
+                        textInterface.display("You have a brief conversation about village trade.");
+                        npc.improveRelationship(1);
+                    }
+                    break;
+                case 2:
+                    // Trading system
+                    tradeWithMerchant(npc);
+                    break;
+            }
         } else {
             // Regular NPC conversation
             if (npc.getRelationshipLevel() > 60) {
@@ -1136,8 +1162,8 @@ public class Logic {
             textInterface.displayQuick("how to reorganize their homes and daily routines.");
             village.improveEducation(6);
             village.improveTrust(3);
-            // Slight immediate effect on infection reduction
-            if (random.nextDouble() < 0.3) {
+            // Slightly more immediate effect on infection reduction
+            if (random.nextDouble() < 0.4) {
                 textInterface.displayNotification(
                         "Your education immediately helps - some villagers avoid a potential exposure!");
             }
@@ -1358,5 +1384,198 @@ public class Logic {
                 "Use your resources wisely and make strategic decisions to lead the village to recovery.");
         textInterface.displayDramatic("Good luck, doctor! The fate of Alderbrook village is in your hands.");
         textInterface.waitForEnter("Press ENTER to continue to the game");
+    }
+
+    // NEW: Trading system with merchant Anna
+    private void tradeWithMerchant(NPC merchant) {
+        textInterface.displayHeader("ANNA'S TRADING POST");
+
+        // Check relationship level for pricing
+        int relationshipLevel = merchant.getRelationshipLevel();
+        boolean goodRelationship = relationshipLevel > 60;
+        boolean excellentRelationship = relationshipLevel > 80;
+
+        if (goodRelationship) {
+            textInterface.displayStory("Anna greets you warmly and shows you her best goods.");
+            if (excellentRelationship) {
+                textInterface.displayQuick("\"For you, doctor, I offer special prices!\"");
+            }
+        } else {
+            textInterface.displayStory("Anna eyes you warily but shows you her available wares.");
+            textInterface.displayQuick("\"Prices are firm. No haggling.\"");
+        }
+
+        // Calculate prices based on relationship
+        int protectiveGearPrice = excellentRelationship ? 2 : goodRelationship ? 3 : 4;
+        int soapPrice = excellentRelationship ? 1 : goodRelationship ? 1 : 2;
+        int herbPrice = excellentRelationship ? 1 : goodRelationship ? 2 : 2;
+
+        while (true) {
+            textInterface.display("\nWhat would you like to trade for?");
+            textInterface.display("1: Protective gear (" + protectiveGearPrice + " coins)");
+            textInterface.display("2: Soap (" + soapPrice + " coin" + (soapPrice > 1 ? "s" : "") + ")");
+            textInterface.display("3: Herbs (" + herbPrice + " coin" + (herbPrice > 1 ? "s" : "") + " each)");
+
+            // Special items based on relationship
+            if (excellentRelationship && currentDay > 10) {
+                textInterface.display("4: Advanced supplies bundle (8 coins) - Limited time!");
+            }
+
+            textInterface.display("5: Sell items to Anna");
+            textInterface.display("6: Leave");
+
+            int maxChoice = (excellentRelationship && currentDay > 10) ? 6 : 6;
+            int choice = textInterface.getChoice("Choose an option", 1, maxChoice);
+
+            switch (choice) {
+                case 1: // Protective gear
+                    if (player.getItemCount("coins") >= protectiveGearPrice) {
+                        player.useItem("coins", protectiveGearPrice);
+                        player.addItem("protective_gear", 1);
+                        textInterface.displayNotification(
+                                "You traded " + protectiveGearPrice + " coins for protective gear!");
+                        merchant.improveRelationship(2);
+
+                        if (goodRelationship) {
+                            textInterface.displayQuick("Anna adds: \"This should keep you safe, doctor.\"");
+                        }
+                    } else {
+                        textInterface.displayStory("You don't have enough coins (need " + protectiveGearPrice + ").");
+                    }
+                    break;
+
+                case 2: // Soap
+                    if (player.getItemCount("coins") >= soapPrice) {
+                        player.useItem("coins", soapPrice);
+                        player.addItem("soap", 1);
+                        textInterface.displayNotification(
+                                "You traded " + soapPrice + " coin" + (soapPrice > 1 ? "s" : "") + " for soap!");
+                        merchant.improveRelationship(1);
+                    } else {
+                        textInterface.displayStory("You don't have enough coins.");
+                    }
+                    break;
+
+                case 3: // Herbs
+                    if (player.getItemCount("coins") >= herbPrice) {
+                        textInterface.display(
+                                "How many herbs would you like? (You have " + player.getItemCount("coins") + " coins)");
+                        int maxHerbs = player.getItemCount("coins") / herbPrice;
+                        int herbQuantity = textInterface.getChoice("Enter quantity", 1, Math.min(maxHerbs, 5));
+
+                        int totalCost = herbQuantity * herbPrice;
+                        player.useItem("coins", totalCost);
+                        player.addItem("herbs", herbQuantity);
+                        textInterface.displayNotification(
+                                "You traded " + totalCost + " coins for " + herbQuantity + " herbs!");
+                        merchant.improveRelationship(1);
+                    } else {
+                        textInterface.displayStory("You don't have enough coins (need " + herbPrice + ").");
+                    }
+                    break;
+
+                case 4: // Advanced bundle (only if excellent relationship)
+                    if (excellentRelationship && currentDay > 10) {
+                        if (player.getItemCount("coins") >= 8) {
+                            player.useItem("coins", 8);
+                            player.addItem("protective_gear", 2);
+                            player.addItem("soap", 2);
+                            player.addItem("herbs", 3);
+                            textInterface.displayDramatic("Anna brings out a special bundle from her private stock!");
+                            textInterface.displayNotification("Advanced bundle: 2 protective gear, 2 soap, 3 herbs!");
+                            merchant.improveRelationship(3);
+                            textInterface.displayQuick("\"This is my best deal, doctor. Don't tell the others!\"");
+                        } else {
+                            textInterface.displayStory("You need 8 coins for the advanced bundle.");
+                        }
+                    }
+                    break;
+
+                case 5: // Sell items
+                    sellItemsToMerchant(merchant);
+                    break;
+
+                case 6: // Leave
+                    textInterface.displayStory("You thank Anna and leave her shop.");
+                    return;
+            }
+
+            // Show updated coin count
+            textInterface.displayQuick("You now have " + player.getItemCount("coins") + " coins.");
+        }
+    }
+
+    // NEW: Selling system
+    private void sellItemsToMerchant(NPC merchant) {
+        textInterface.displayHeader("SELL ITEMS TO ANNA");
+        textInterface.displayStory("Anna examines your items to see what she might buy.");
+
+        Map<String, Integer> inventory = player.getInventory();
+        boolean hasItemsToSell = false;
+
+        // Items Anna will buy and their prices
+        Map<String, Integer> sellPrices = new HashMap<>();
+        sellPrices.put("herbs", 1); // Sell herbs for 1 coin each
+        sellPrices.put("royal_medicine", 5); // Rare items worth more
+        sellPrices.put("ancient_texts", 3);
+        sellPrices.put("rare_supplies", 2);
+
+        textInterface.display("\nItems Anna is interested in:");
+        for (Map.Entry<String, Integer> sellItem : sellPrices.entrySet()) {
+            String itemName = sellItem.getKey();
+            int sellPrice = sellItem.getValue();
+            int playerQuantity = player.getItemCount(itemName);
+
+            if (playerQuantity > 0) {
+                textInterface.display("- " + itemName + ": " + playerQuantity + " available (" + sellPrice + " coin"
+                        + (sellPrice > 1 ? "s" : "") + " each)");
+                hasItemsToSell = true;
+            }
+        }
+
+        if (!hasItemsToSell) {
+            textInterface.displayStory("\"Sorry doctor, I don't see anything I need right now.\"");
+            return;
+        }
+
+        textInterface.display("\nWhat would you like to sell?");
+        int optionNumber = 1;
+        Map<Integer, String> sellOptions = new HashMap<>();
+
+        for (Map.Entry<String, Integer> sellItem : sellPrices.entrySet()) {
+            String itemName = sellItem.getKey();
+            if (player.getItemCount(itemName) > 0) {
+                textInterface.display(optionNumber + ": " + itemName + " (" + sellPrices.get(itemName) + " coin"
+                        + (sellPrices.get(itemName) > 1 ? "s" : "") + " each)");
+                sellOptions.put(optionNumber, itemName);
+                optionNumber++;
+            }
+        }
+        textInterface.display(optionNumber + ": Nothing, go back");
+
+        int choice = textInterface.getChoice("Choose an item to sell", 1, optionNumber);
+
+        if (choice == optionNumber) {
+            return; // Go back
+        }
+
+        String itemToSell = sellOptions.get(choice);
+        int sellPrice = sellPrices.get(itemToSell);
+        int playerQuantity = player.getItemCount(itemToSell);
+
+        textInterface.display("How many " + itemToSell + " would you like to sell? (You have " + playerQuantity + ")");
+        int quantity = textInterface.getChoice("Enter quantity", 1, playerQuantity);
+
+        int totalEarned = quantity * sellPrice;
+        player.useItem(itemToSell, quantity);
+        player.addItem("coins", totalEarned);
+
+        textInterface
+                .displayNotification("You sold " + quantity + " " + itemToSell + " for " + totalEarned + " coins!");
+        merchant.improveRelationship(1);
+
+        if (merchant.getRelationshipLevel() > 70) {
+            textInterface.displayQuick("Anna smiles: \"Always a pleasure doing business with you, doctor!\"");
+        }
     }
 }
