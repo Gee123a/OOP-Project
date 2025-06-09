@@ -134,8 +134,14 @@ public class Logic {
                 int progress = questProgress.getOrDefault(quest, 0);
                 if (quest.equals("doctor_quest")) {
                     textInterface.display("- Gather herbs for Doctor Elias: " + progress + "/10 herbs");
+                    if (progress >= 10) {
+                        textInterface.display("  >>> READY TO TURN IN! Speak with Doctor Elias <<<");
+                    }
                 } else if (quest.equals("lord_quest")) {
                     textInterface.display("- Examine noble families for Lord Harwick: " + progress + "/3 families");
+                    if (progress >= 3) {
+                        textInterface.display("  >>> READY TO TURN IN! Speak with Lord Harwick <<<");
+                    }
                 } else if (quest.equals("traveler_quest")) {
                     if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
                         SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
@@ -684,8 +690,35 @@ public class Logic {
                         String questKey = npcKey + "_quest";
                         if (!activeQuests.contains(questKey)) {
                             activeQuests.add(questKey);
-                            questProgress.put(questKey, 0);
+                            
+                            // Initialize progress based on current inventory
+                            int initialProgress = 0;
+                            if (questKey.equals("doctor_quest")) {
+                                // Give credit for herbs already in inventory
+                                initialProgress = player.getItemCount("herbs");
+                                textInterface.displayNotification("You already have " + initialProgress + " herbs that count toward this quest!");
+                            } else if (questKey.equals("lord_quest")) {
+                                // For lord quest, start at 0 since it tracks actions, not items
+                                initialProgress = 0;
+                            } else if (questKey.equals("traveler_quest")) {
+                                // Different traveler quests might have different starting conditions
+                                if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
+                                    SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                                    String role = traveler.getRole();
+                                    if (role.equals("Royal Physician")) {
+                                        // Count existing healing water samples if any
+                                        initialProgress = player.getItemCount("healing_water");
+                                    }
+                                    // Other traveler types start at 0 since they track actions
+                                }
+                            }
+                            
+                            questProgress.put(questKey, initialProgress);
                             textInterface.display("You've accepted the quest!");
+                            
+                            // Check if quest is already complete
+                            checkQuestCompletion(questKey, npcKey);
+                            
                             textInterface.display("Check your status to track progress.");
                         } else {
                             textInterface.display("You already have this quest.");
@@ -982,6 +1015,39 @@ public class Logic {
                     textInterface.displayTypewriter("\"I hereby establish permanent trade routes!\"", 75);
                     textInterface.displayNotification("Lady Vivienne establishes permanent medical supply routes!");
                 }
+            }
+        }
+    }
+
+    // Add this new method to check if a quest is immediately completable:
+
+    private void checkQuestCompletion(String questKey, String npcKey) {
+        int currentProgress = questProgress.getOrDefault(questKey, 0);
+        
+        if (questKey.equals("doctor_quest") && currentProgress >= 10) {
+            textInterface.displayDramatic("You already have enough herbs to complete this quest!");
+            boolean completeNow = textInterface.askYesNo("Turn in the quest now?");
+            if (completeNow) {
+                // Consume the required herbs
+                player.useItem("herbs", 10);
+                completeQuest(questKey, npcKey);
+            }
+        } else if (questKey.equals("lord_quest") && currentProgress >= 3) {
+            completeQuest(questKey, npcKey);
+        } else if (questKey.equals("traveler_quest")) {
+            if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
+                SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+                String role = traveler.getRole();
+                
+                if (role.equals("Royal Physician") && currentProgress >= 3) {
+                    textInterface.displayDramatic("You already have the required healing water samples!");
+                    boolean completeNow = textInterface.askYesNo("Turn in the quest now?");
+                    if (completeNow) {
+                        player.useItem("healing_water", 3);
+                        completeQuest(questKey, npcKey);
+                    }
+                }
+                // Other traveler quest types are action-based, so can't be pre-completed
             }
         }
     }
@@ -1416,16 +1482,22 @@ public class Logic {
             textInterface.display("2: Soap (" + soapPrice + " coin" + (soapPrice > 1 ? "s" : "") + ")");
             textInterface.display("3: Herbs (" + herbPrice + " coin" + (herbPrice > 1 ? "s" : "") + " each)");
 
-            // Special items based on relationship
-            if (excellentRelationship && currentDay > 10) {
+            boolean bundleAvailable = excellentRelationship && currentDay > 10;
+            int sellOption, leaveOption;
+
+            if (bundleAvailable) {
                 textInterface.display("4: Advanced supplies bundle (8 coins) - Limited time!");
+                sellOption = 5;
+                leaveOption = 6;
+            } else {
+                sellOption = 4;
+                leaveOption = 5;
             }
 
-            textInterface.display("5: Sell items to Anna");
-            textInterface.display("6: Leave");
+            textInterface.display(sellOption + ": Sell items to Anna");
+            textInterface.display(leaveOption + ": Leave");
 
-            int maxChoice = (excellentRelationship && currentDay > 10) ? 6 : 6;
-            int choice = textInterface.getChoice("Choose an option", 1, maxChoice);
+            int choice = textInterface.getChoice("Choose an option", 1, leaveOption);
 
             switch (choice) {
                 case 1: // Protective gear
@@ -1435,7 +1507,6 @@ public class Logic {
                         textInterface.displayNotification(
                                 "You traded " + protectiveGearPrice + " coins for protective gear!");
                         merchant.improveRelationship(2);
-
                         if (goodRelationship) {
                             textInterface.displayQuick("Anna adds: \"This should keep you safe, doctor.\"");
                         }
@@ -1474,8 +1545,9 @@ public class Logic {
                     }
                     break;
 
-                case 4: // Advanced bundle (only if excellent relationship)
-                    if (excellentRelationship && currentDay > 10) {
+                case 4: // Either Advanced bundle OR Sell items (depending on availability)
+                    if (bundleAvailable) {
+                        // Advanced bundle
                         if (player.getItemCount("coins") >= 8) {
                             player.useItem("coins", 8);
                             player.addItem("protective_gear", 2);
@@ -1488,16 +1560,27 @@ public class Logic {
                         } else {
                             textInterface.displayStory("You need 8 coins for the advanced bundle.");
                         }
+                    } else {
+                        // Sell items (when bundle not available)
+                        sellItemsToMerchant(merchant);
                     }
                     break;
 
-                case 5: // Sell items
-                    sellItemsToMerchant(merchant);
+                case 5: // Sell items OR Leave (depending on availability)
+                    if (bundleAvailable) {
+                        sellItemsToMerchant(merchant);
+                    } else {
+                        textInterface.displayStory("You thank Anna and leave her shop.");
+                        return;
+                    }
                     break;
 
-                case 6: // Leave
-                    textInterface.displayStory("You thank Anna and leave her shop.");
-                    return;
+                case 6: // Leave (only when bundle is available)
+                    if (bundleAvailable) {
+                        textInterface.displayStory("You thank Anna and leave her shop.");
+                        return;
+                    }
+                    break;
             }
 
             // Show updated coin count
@@ -1535,7 +1618,22 @@ public class Logic {
 
         if (!hasItemsToSell) {
             textInterface.displayStory("\"Sorry doctor, I don't see anything I need right now.\"");
+            textInterface
+                    .displayQuick("Anna suggests: \"Bring me herbs, rare medicines, or ancient texts next time.\"");
             return;
+        }
+
+        // Show total potential earnings
+        int totalPossibleEarnings = 0;
+        for (Map.Entry<String, Integer> sellItem : sellPrices.entrySet()) {
+            String itemName = sellItem.getKey();
+            int sellPrice = sellItem.getValue();
+            int playerQuantity = player.getItemCount(itemName);
+            totalPossibleEarnings += sellPrice * playerQuantity;
+        }
+
+        if (totalPossibleEarnings > 0) {
+            textInterface.displayQuick("Total possible earnings: " + totalPossibleEarnings + " coins");
         }
 
         textInterface.display("\nWhat would you like to sell?");
