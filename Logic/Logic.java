@@ -56,7 +56,6 @@ public class Logic {
 
         // Show ending
         displayEnding();
-
         textInterface.display("\nThank you for playing!");
 
     }
@@ -102,7 +101,6 @@ public class Logic {
         textInterface.display("============================================================");
         String username = getUsername();
         textInterface.displayNotification("Welcome, Doctor " + username + "!");
-        textInterface.waitForEnter("Press ENTER to begin your journey");
     }
 
     // Display player and village status
@@ -160,7 +158,6 @@ public class Logic {
 
     // Process events for the current day
     private void processSpecialEvents() {
-        // Day 1 introduction event
         if (currentDay == 1) {
             textInterface.displayStory("The village elder, Thomas, greets you at the gate.");
             textInterface.displayDramatic("\"Thank the heavens you've come, doctor. The sickness spreads quickly.\"");
@@ -218,7 +215,7 @@ public class Logic {
             }
         }
 
-        // Day 7 - 1st random encounter event
+        // Day 7 - 1st random encounter event (UPDATED)
         else if (currentDay == 7) {
             if (random.nextDouble() < 0.7) // 70% chance of this event
             {
@@ -275,81 +272,81 @@ public class Logic {
                         break;
                 }
             }
+        }
 
-            // Day 14 - Traveler recovery and transformation event
-            else if (currentDay == 14) {
-                if (keyVillagers.containsKey("traveler")) {
-                    NPC traveler = keyVillagers.get("traveler");
+        // Day 14 - Traveler recovery and transformation event
+        else if (currentDay == 14) {
+            if (keyVillagers.containsKey("traveler")) {
+                NPC traveler = keyVillagers.get("traveler");
 
-                    textInterface.displayHeader("TRAVELER RECOVERY EVENT");
+                textInterface.displayHeader("TRAVELER RECOVERY EVENT");
 
-                    if (!traveler.isSick()) {
-                        // Traveler has recovered - TRANSFORM them into SpecialNPC
-                        textInterface.displayStory("The mysterious traveler approaches you, now fully recovered.");
-                        textInterface.mediumPause();
-                        textInterface
-                                .displayDramatic("\"Doctor, I owe you my life. Let me tell you who I really am...\"");
+                if (!traveler.isSick()) {
+                    // Traveler has recovered - TRANSFORM them into SpecialNPC
+                    textInterface.displayStory("The mysterious traveler approaches you, now fully recovered.");
+                    textInterface.mediumPause();
+                    textInterface
+                            .displayDramatic("\"Doctor, I owe you my life. Let me tell you who I really am...\"");
 
-                        // Create new SpecialNPC with revealed identity
-                        SpecialNPC specialTraveler = transformTravelerToSpecial(traveler);
+                    // Create new SpecialNPC with revealed identity
+                    SpecialNPC specialTraveler = transformTravelerToSpecial(traveler);
 
-                        // Replace the regular NPC with SpecialNPC
-                        keyVillagers.put("traveler", specialTraveler);
+                    // Replace the regular NPC with SpecialNPC
+                    keyVillagers.put("traveler", specialTraveler);
 
-                        textInterface.shortPause();
-                        textInterface.displayNotification(
-                                "You can now speak with " + specialTraveler.getName() + " for special assistance!");
+                    textInterface.shortPause();
+                    textInterface.displayNotification(
+                            "You can now speak with " + specialTraveler.getName() + " for special assistance!");
 
-                    } else {
-                        // Still sick - offer intensive treatment
-                        textInterface.displayStory("The traveler remains gravely ill after a week.");
-                        textInterface.shortPause();
-                        boolean intensiveTreatment = textInterface.askYesNo("Spend extra effort treating them today?");
+                } else {
+                    // Still sick - offer intensive treatment
+                    textInterface.displayStory("The traveler remains gravely ill after a week.");
+                    textInterface.shortPause();
+                    boolean intensiveTreatment = textInterface.askYesNo("Spend extra effort treating them today?");
 
-                        if (intensiveTreatment) {
-                            textInterface.displayStory("You focus all your medical knowledge on saving them...");
+                    if (intensiveTreatment) {
+                        textInterface.displayStory("You focus all your medical knowledge on saving them...");
 
-                            if (player.hasItem("herbs")) {
-                                player.useItem("herbs", 2);
-                                player.setEnergy(player.getEnergy() - 20);
+                        if (player.hasItem("herbs")) {
+                            player.useItem("herbs", 2);
+                            player.setEnergy(player.getEnergy() - 20);
 
-                                if (random.nextDouble() < 0.8) { // 80% success with herbs
-                                    traveler.recover();
-                                    textInterface.displayDramatic(
-                                            "Your intensive treatment works! The traveler begins to recover!");
-                                    village.improveTrust(10);
-                                } else {
-                                    textInterface.displayWithDelay("Despite your best efforts, they remain critical.",
-                                            1500);
-                                }
+                            if (random.nextDouble() < 0.8) { // 80% success with herbs
+                                traveler.recover();
+                                textInterface.displayDramatic(
+                                        "Your intensive treatment works! The traveler begins to recover!");
+                                village.improveTrust(10);
                             } else {
-                                player.setEnergy(player.getEnergy() - 25);
-                                if (random.nextDouble() < 0.4) { // 40% success without herbs
-                                    traveler.recover();
-                                    textInterface
-                                            .displayDramatic("Through determination alone, you help them recover!");
-                                } else {
-                                    textInterface.displayStory("Without proper medicine, your options are limited.");
-                                }
+                                textInterface.displayWithDelay("Despite your best efforts, they remain critical.",
+                                        1500);
+                            }
+                        } else {
+                            player.setEnergy(player.getEnergy() - 25);
+                            if (random.nextDouble() < 0.4) { // 40% success without herbs
+                                traveler.recover();
+                                textInterface
+                                        .displayDramatic("Through determination alone, you help them recover!");
+                            } else {
+                                textInterface.displayStory("Without proper medicine, your options are limited.");
                             }
                         }
                     }
                 }
             }
+        }
 
-            // Special event on May 20 - ENHANCE WITH DELAYS
-            else if (currentDay == 20) {
-                textInterface.displayHeader("SPECIAL EVENT");
-                textInterface.displayStory(
-                        "You notice today's date is May 20th, a date that feels particularly significant.");
-                textInterface.mediumPause();
-                textInterface.displayDramatic(
-                        "A strange sense of clarity comes over you, as if unseen forces guide your hand.");
-                textInterface.displayWithDelay("Ancient knowledge seems to flow through your fingertips...", 1500);
-                player.increaseDoctorSkill(5); // Bonus skill points
-                textInterface
-                        .displayNotification("Your doctor skill has increased by 5 points through divine inspiration!");
-            }
+        // Special event on May 20 - ENHANCE WITH DELAYS
+        else if (currentDay == 20) {
+            textInterface.displayHeader("SPECIAL EVENT");
+            textInterface
+                    .displayStory("You notice today's date is May 20th, a date that feels particularly significant.");
+            textInterface.mediumPause();
+            textInterface.displayTypewriter(
+                    "A strange sense of clarity comes over you, as if unseen forces guide your hand.", 70);
+            textInterface.displayTypewriter("Ancient knowledge seems to flow through your fingertips...", 80);
+            player.increaseDoctorSkill(5);
+            textInterface
+                    .displayNotification("Your doctor skill has increased by 5 points through divine inspiration!");
         }
     }
 
@@ -367,9 +364,11 @@ public class Logic {
                         "A learned doctor from the King's court, traveling in disguise.", false,
                         "Can teach advanced royal medical techniques");
 
-                textInterface.displayDramatic("\"I am Marcus Aurelius, physician to the King's court.\"");
-                textInterface.displayWithDelay("\"I was studying plague patterns in rural areas when I fell ill.\"",
-                        1200);
+                textInterface.displayTypewriter("\"I am Marcus Aurelius, physician to the King's court.\"", 80);
+                textInterface.displayTypewriter("\"I was studying plague patterns in rural areas when I fell ill.\"",
+                        70);
+                textInterface.displayTypewriter("\"Your compassionate care has earned you a powerful ally.\"", 60);
+                textInterface.displayWithDelay("\"Take this letter of recommendation to the King!\"", 1200);
                 textInterface.displayStory("\"Your compassionate care has earned you a powerful ally.\"");
 
                 // Immediate reward for helping
@@ -383,14 +382,12 @@ public class Logic {
                         "A scholar studying disease patterns across different regions.", false,
                         "Can provide valuable research and education");
 
-                textInterface.displayDramatic("\"I am Brother Benedict from the university.\"");
-                textInterface.displayWithDelay("\"I've been documenting plague responses across the realm.\"", 1200);
-                textInterface.displayStory("\"Your methods align with the latest scholarly research.\"");
-
-                // Immediate reward
-                village.improveEducation(10);
-                village.improveTrust(10);
-                textInterface.displayNotification("He shares valuable research that improves village knowledge!");
+                textInterface.displayTypewriter("\"I am Brother Benedict from the university.\"", 80);
+                textInterface.displayTypewriter("\"I've been documenting plague responses across the realm.\"", 70);
+                textInterface.displayTypewriter("\"Your methods align with the latest scholarly research.\"", 60);
+                textInterface.displayWithDelay("\"My complete research is now yours!\"", 1200);
+                textInterface
+                        .displayNotification("Brother Benedict shares his complete research with the village!");
                 break;
 
             case "Merchant Prince":
@@ -398,15 +395,11 @@ public class Logic {
                         "A wealthy trader with connections across the continent.", false,
                         "Can provide rare supplies and trade connections");
 
-                textInterface.displayDramatic("\"I am Lady Vivienne, head of the Northern Trading Guild.\"");
-                textInterface.displayWithDelay("\"Your care has earned you a powerful ally in commerce.\"", 1200);
-                textInterface.displayStory("\"I can arrange for medical supplies to reach this village.\"");
-
-                // Immediate reward
-                player.addItem("rare_supplies", 3);
-                player.addItem("coins", 30);
-                village.improveTrust(8);
-                textInterface.displayNotification("She provides valuable supplies and trade connections!");
+                textInterface.displayTypewriter("\"I am Lady Vivienne, head of the Northern Trading Guild.\"", 80);
+                textInterface.displayTypewriter("\"Your care has earned you a powerful ally in commerce.\"", 70);
+                textInterface.displayTypewriter("\"I can arrange for medical supplies to reach this village.\"", 60);
+                textInterface.displayWithDelay("\"I hereby establish permanent trade routes!\"", 1200);
+                textInterface.displayNotification("Lady Vivienne establishes permanent medical supply routes!");
                 break;
 
             default:
@@ -546,6 +539,7 @@ public class Logic {
                             textInterface.display("- " + item.getKey() + ": " + item.getValue());
                         }
                     }
+                    actionsRemaining--;
                     break;
                 case 9: // Use advanced medicine (only available if player has it)
                     if (player.hasItem("advanced_medicine")) {
@@ -649,7 +643,6 @@ public class Logic {
             default:
                 return;
         }
-
         interactWithVillager(npcKey);
     }
 
@@ -783,8 +776,8 @@ public class Logic {
 
         // Advanced medicine can save additional patients
         if (useAdvancedMedicine && random.nextDouble() < 0.6) { // 60% chance
-            potentialRecoveries += 1 + random.nextInt(2); // 1-2 extra recoveries
-            textInterface.displayDramatic("The advanced medicine works miracles on the most critical cases!");
+            potentialRecoveries += 1 + random.nextInt(2);
+            textInterface.displayTypewriter("The advanced medicine works miracles on the most critical cases!", 70);
         }
 
         // Apply results with enhanced feedback
@@ -877,18 +870,25 @@ public class Logic {
                 }
             }
         }
+
+        // When villagers die (you could add this in treatPatients when treatment
+        // fails):
+        if (potentialRecoveries <= 0 && random.nextDouble() < 0.2) {
+            textInterface.displayTypewriter("Despite your efforts, another soul slips away into the darkness...", 90);
+            textInterface.displayStory("The family mourns as you document another loss.");
+        }
     }
 
     // Update your updateQuestProgress method:
     private void updateQuestProgress(String questKey, int progress) {
         if (activeQuests.contains(questKey)) {
-            questProgress.merge(questKey, progress, Integer::sum);
-            
+            int currentProgress = questProgress.getOrDefault(questKey, 0);
+            questProgress.put(questKey, currentProgress + progress);
+
             // Check if quest is complete
-            int currentProgress = questProgress.get(questKey);
-            if (questKey.equals("doctor_quest") && currentProgress >= 10) {
+            if (questKey.equals("doctor_quest") && questProgress.get(questKey) >= 10) {
                 completeQuest(questKey, "doctor");
-            } else if (questKey.equals("lord_quest") && currentProgress >= 3) {
+            } else if (questKey.equals("lord_quest") && questProgress.get(questKey) >= 3) {
                 completeQuest(questKey, "lord");
             } else if (questKey.equals("traveler_quest")) {
                 // Different completion based on traveler identity
@@ -902,35 +902,6 @@ public class Logic {
                         completeQuest(questKey, "traveler");
                     }
                 }
-            }
-        }
-    }
-
-    // Add helper method for quest completion checks:
-    private void checkQuestCompletion(String questKey) {
-        int progress = questProgress.getOrDefault(questKey, 0);
-        
-        switch (questKey) {
-            case "doctor_quest":
-                if (progress >= 10) completeQuest(questKey, "doctor");
-                break;
-            case "lord_quest":
-                if (progress >= 3) completeQuest(questKey, "lord");
-                break;
-            case "traveler_quest":
-                checkTravelerQuestCompletion(questKey, progress);
-                break;
-        }
-    }
-
-    private void checkTravelerQuestCompletion(String questKey, int progress) {
-        if (keyVillagers.containsKey("traveler") && keyVillagers.get("traveler") instanceof SpecialNPC) {
-            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
-            String role = traveler.getRole();
-            
-            int requiredProgress = role.equals("Merchant Prince") ? 5 : 3;
-            if (progress >= requiredProgress) {
-                completeQuest(questKey, "traveler");
             }
         }
     }
@@ -951,7 +922,8 @@ public class Logic {
                 player.increaseDoctorSkill(3);
                 player.addItem("advanced_medicine", 2);
                 textInterface.displayStory("Doctor Elias nods approvingly...");
-                textInterface.displayNotification("He teaches you advanced techniques and gives you special medicine!");
+                textInterface
+                        .displayNotification("He teaches you advanced techniques and gives you 2 special medicine!");
                 textInterface.displayQuick("Your doctor skill increased by 3!");
             } else if (npcKey.equals("lord")) {
                 village.improveTrust(15);
@@ -964,26 +936,24 @@ public class Logic {
                 // Add traveler quest rewards here with dramatic effect
                 SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
                 String role = traveler.getRole();
-
                 textInterface.displayStory(traveler.getName() + " smiles with deep gratitude...");
-
                 if (role.equals("Royal Physician")) {
                     player.increaseDoctorSkill(5);
                     player.addItem("royal_medicine", 3);
                     player.addItem("king_letter", 1);
-                    textInterface.displayDramatic("\"Take this letter of recommendation to the King!\"");
+                    textInterface.displayTypewriter("\"Take this letter of recommendation to the King!\"", 75);
                     textInterface.displayNotification("Marcus Aurelius gives you royal medicine and a king's letter!");
                 } else if (role.equals("Traveling Scholar")) {
                     village.improveEducation(20);
                     player.addItem("ancient_texts", 2);
-                    textInterface.displayDramatic("\"My complete research is now yours!\"");
+                    textInterface.displayTypewriter("\"My complete research is now yours!\"", 75);
                     textInterface
                             .displayNotification("Brother Benedict shares his complete research with the village!");
                 } else if (role.equals("Merchant Prince")) {
                     player.addItem("rare_supplies", 5);
                     player.addItem("protective_gear", 3);
                     village.improveTrust(15);
-                    textInterface.displayDramatic("\"I hereby establish permanent trade routes!\"");
+                    textInterface.displayTypewriter("\"I hereby establish permanent trade routes!\"", 75);
                     textInterface.displayNotification("Lady Vivienne establishes permanent medical supply routes!");
                 }
             }
@@ -1002,7 +972,7 @@ public class Logic {
 
         // Check for critical health with dramatic effect
         if (player.getHealth() < 20) {
-            textInterface.displayDramatic("\nYour vision blurs as fever takes hold...");
+            textInterface.displayTypewriter("Your vision blurs as fever takes hold...", 100);
             textInterface.displayWithDelay("The plague may be claiming another victim.", 2000);
             gameState = "BAD_ENDING";
             return;
@@ -1046,10 +1016,10 @@ public class Logic {
 
         switch (gameState) {
             case "GOOD_PATH":
-                textInterface.displayDramatic("You successfully led the village to recovery!");
+                textInterface.displayTypewriter("You successfully led the village to recovery!", 80);
                 textInterface.displayStory("The plague has been contained, with " + village.getRecoveredCount() +
                         " villagers recovered and " + village.getDeathCount() + " lost.");
-                textInterface.displayNotification("Your methods will be remembered for generations to come.");
+                textInterface.displayTypewriter("Your methods will be remembered for generations to come.", 70);
                 break;
 
             case "MIXED_PATH":
@@ -1068,10 +1038,10 @@ public class Logic {
                 break;
 
             case "BAD_ENDING":
-                textInterface.displayDramatic("You succumbed to the plague, unable to complete your mission.");
+                textInterface.displayTypewriter("You succumbed to the plague, unable to complete your mission.", 90);
                 textInterface.displayStory("Without your guidance, the village descends into panic and chaos.");
-                textInterface.displayWithDelay(
-                        "Perhaps your notes will help the next plague doctor who comes to Alderbrook.", 2000);
+                textInterface.displayTypewriter(
+                        "Perhaps your notes will help the next plague doctor who comes to Alderbrook.", 80);
                 break;
         }
     }
@@ -1116,6 +1086,17 @@ public class Logic {
 
         textInterface.displayQuick("\nYou see some villagers immediately checking their hands and clothes.");
         textInterface.displayStory("Your lessons about cleanliness are slowly taking root in the community.");
+
+        // Check and update traveler quest progress
+        if (activeQuests.contains("traveler_quest") &&
+                keyVillagers.containsKey("traveler") &&
+                keyVillagers.get("traveler") instanceof SpecialNPC) {
+            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+            if (traveler.getRole().equals("Traveling Scholar")) {
+                updateQuestProgress("traveler_quest", 1);
+                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+            }
+        }
     }
 
     private void educateAboutTransmission() {
@@ -1161,6 +1142,17 @@ public class Logic {
                         "Your education immediately helps - some villagers avoid a potential exposure!");
             }
         }
+
+        // Check and update traveler quest progress
+        if (activeQuests.contains("traveler_quest") &&
+                keyVillagers.containsKey("traveler") &&
+                keyVillagers.get("traveler") instanceof SpecialNPC) {
+            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+            if (traveler.getRole().equals("Traveling Scholar")) {
+                updateQuestProgress("traveler_quest", 1);
+                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+            }
+        }
     }
 
     private void educateAboutHerbalMedicine() {
@@ -1202,6 +1194,17 @@ public class Logic {
             village.improveEducation(2);
             village.improveTrust(1);
             textInterface.displayStory("The villagers seem interested but want to see actual herbs next time.");
+        }
+
+        // Check and update traveler quest progress
+        if (activeQuests.contains("traveler_quest") &&
+                keyVillagers.containsKey("traveler") &&
+                keyVillagers.get("traveler") instanceof SpecialNPC) {
+            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+            if (traveler.getRole().equals("Traveling Scholar")) {
+                updateQuestProgress("traveler_quest", 1);
+                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+            }
         }
     }
 
@@ -1250,6 +1253,17 @@ public class Logic {
                 village.lowerTrust(1);
                 textInterface
                         .displayStory("Some villagers remain suspicious of your 'foreign' ideas about separation.");
+            }
+        }
+
+        // Check and update traveler quest progress
+        if (activeQuests.contains("traveler_quest") &&
+                keyVillagers.containsKey("traveler") &&
+                keyVillagers.get("traveler") instanceof SpecialNPC) {
+            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+            if (traveler.getRole().equals("Traveling Scholar")) {
+                updateQuestProgress("traveler_quest", 1);
+                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
             }
         }
     }
@@ -1302,6 +1316,17 @@ public class Logic {
                     .displayStory("You acknowledge their struggles and focus on making the best of available foods.");
             village.improveEducation(4);
             village.improveTrust(2);
+        }
+
+        // Check and update traveler quest progress
+        if (activeQuests.contains("traveler_quest") &&
+                keyVillagers.containsKey("traveler") &&
+                keyVillagers.get("traveler") instanceof SpecialNPC) {
+            SpecialNPC traveler = (SpecialNPC) keyVillagers.get("traveler");
+            if (traveler.getRole().equals("Traveling Scholar")) {
+                updateQuestProgress("traveler_quest", 1);
+                textInterface.displayQuick("Brother Benedict takes notes on your educational methods.");
+            }
         }
     }
 
