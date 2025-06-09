@@ -16,7 +16,7 @@ public class Logic {
     private int TOTAL_DAYS = 30;
     private Random random = new Random();
     private String gameState = "ONGOING";
-    private String VERSION = "1.1";
+    private String VERSION = "1.2";
 
     private ConsoleTextInterface textInterface = new ConsoleTextInterface();
     private ArrayList<String> activeQuests = new ArrayList<>();

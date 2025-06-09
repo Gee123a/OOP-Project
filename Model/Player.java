@@ -6,7 +6,7 @@ import java.util.Map;
 public class Player extends Character {
     private int cleanliness;
     private int energy;
-    private Map<String, Integer> inventory; // Using HashMap for efficient lookups
+    private Map<String, Integer> inventory; 
     private int doctorSkill;
 
     public Player() {
