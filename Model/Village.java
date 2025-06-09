@@ -16,9 +16,9 @@ public class Village {
     private Random random;
 
     // Constants
-    private double BASE_INFECTION_RATE = 0.25;
-    private double BASE_RECOVERY_RATE = 0.08;
-    private double BASE_MORTALITY_RATE = 0.08;
+    private double BASE_INFECTION_RATE = 0.20;
+    private double BASE_RECOVERY_RATE = 0.04;
+    private double BASE_MORTALITY_RATE = 0.06;
 
     public Village() {
         this.population = 200;
@@ -78,18 +78,26 @@ public class Village {
     }
 
     private int calculateNewRecoveries() {
-        // Base recovery calculation
-        double recoveryRate = BASE_RECOVERY_RATE;
+        // Much lower base recovery rate
+        double recoveryRate = BASE_RECOVERY_RATE;// 3% base recovery
 
-        // Apply modifiers
-        recoveryRate += (cleanliness / 300.0); // Cleaner village = better recovery
-        recoveryRate += (trustLevel / 400.0); // Trust in doctor = better compliance
+        // Smaller modifier impacts
+        recoveryRate += (cleanliness / 2000.0);  // Max +0.05 (5%)
+        recoveryRate += (trustLevel / 2000.0);   // Max +0.05 (5%)
+        
+        // Education also helps with recovery compliance
+        recoveryRate += (educationLevel / 2000.0); // Max +0.05 (5%)
+
+        // Cap at reasonable maximum
+        recoveryRate = Math.min(recoveryRate, 0.08); // Maximum 8% recovery rate
 
         // Calculate recoveries
         int potentialRecoveries = (int) (infectedCount * recoveryRate);
 
-        // Add randomness
-        potentialRecoveries = Math.max(0, potentialRecoveries + random.nextInt(3) - 1);
+        // Minimal randomness
+        if (random.nextDouble() < 0.3) { // 30% chance for +1 recovery
+            potentialRecoveries++;
+        }
 
         return Math.min(potentialRecoveries, infectedCount);
     }
